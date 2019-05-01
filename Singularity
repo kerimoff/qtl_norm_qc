@@ -7,7 +7,7 @@ Bootstrap:docker
     VERSION 1.0dev
 
 %environment
-    PATH=/opt/conda/envs/feature_counts_qc_env/bin:$PATH
+    PATH=/opt/conda/envs/feature_counts_qc/bin:$PATH
     export PATH
 
 %files
