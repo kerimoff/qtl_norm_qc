@@ -50,6 +50,17 @@ generate_plots = opt$g
 build_html = opt$build_html
 mbv_files_dir = opt$m
 
+message("######### Options: ######### ")
+message("######### Working Directory  : ", getwd())
+message("######### feature_counts_path: ", feature_counts_path)
+message("######### sample_meta_path   : ", sample_meta_path)
+message("######### phenotype_meta_path: ", phenotype_meta_path)
+message("######### output_dir         : ", output_dir)
+message("######### eqtl_utils_path    : ", eqtl_utils_path)
+message("######### generate_plots     : ", generate_plots)
+message("######### build_html         : ", build_html)
+message("######### mbv_files_dir      : ", mbv_files_dir)
+
 if (build_html) { 
   message(" ## Loading libraries: plotly")
   suppressPackageStartupMessages(library("plotly")) 
@@ -97,11 +108,13 @@ sex_spec_gene_exp <- eQTLUtils::plotSexQC(study_data = se, export_output = gener
 saveRDS(sex_spec_gene_exp, paste0(output_dir, paste0("/rds/", study_name ,"_sex_spec_gene_exp_res.rds")))
 readr::write_tsv(sex_spec_gene_exp, paste0(output_dir, paste0("/tsv/", study_name ,"_sex_spec_gene_exp_matrix.tsv")))
 
-if (is.null(mbv_files_dir)) {
+if (!is.null(mbv_files_dir)) {
   message("## Perform MBV Analysis ##")
   mbv_results = eQTLUtils::mbvImportData(mbv_dir = mbv_files_dir, suffix = ".mbv_output.txt")
   best_matches = purrr::map_df(mbv_results, eQTLUtils::mbvFindBestMatch, .id = "sample_id") %>% dplyr::arrange(distance)
   readr::write_tsv(best_matches, paste0(output_dir, paste0("/tsv/", study_name ,"_MBV_best_matches_matrix.tsv"))) 
+  
+  eQTLUtils::plot_mbv_results(mbv_files_path = mbv_files_dir, output_path = paste0(output_dir, "/MBV/"))
 }
 message("## RNA Quality Control is completed! ##")
 message("## Starting Normalisation process... ##")
