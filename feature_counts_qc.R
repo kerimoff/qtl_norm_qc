@@ -17,7 +17,9 @@ option_list <- list(
   make_option(c("-g", "--generate_plots"), type="logical", default=TRUE,
               help="Flag to generate the plots. [default \"%default\"]", metavar = "bool"),
   make_option(c("--build_html"), type="logical", default=FALSE,
-              help="Flag to build plotly html plots [default \"%default\"]", metavar = "bool")
+              help="Flag to build plotly html plots [default \"%default\"]", metavar = "bool"),
+  make_option(c("-m", "--mbvdir"), type="character", default=NULL,
+              help="Path to the output directory. [default \"%default\"]", metavar = "type")
 )
 
 
@@ -46,6 +48,7 @@ output_dir = opt$o
 eqtl_utils_path = opt$e
 generate_plots = opt$g
 build_html = opt$build_html
+mbv_files_dir = opt$m
 
 if (build_html) { 
   message(" ## Loading libraries: plotly")
@@ -94,4 +97,10 @@ sex_spec_gene_exp <- eQTLUtils::plotSexQC(study_data = se, export_output = gener
 saveRDS(sex_spec_gene_exp, paste0(output_dir, paste0("/rds/", study_name ,"_sex_spec_gene_exp_res.rds")))
 write_tsv(sex_spec_gene_exp, paste0(output_dir, paste0("/tsv/", study_name ,"_sex_spec_gene_exp_matrix.tsv")))
 
+if (is.null(mbv_files_dir)) {
+  message("## Perform MBV Analysis ##")
+  mbv_results = eQTLUtils::mbvImportData(mbv_dir = mbv_files_dir, suffix = ".mbv_output.txt")
+  best_matches = purrr::map_df(mbv_results, eQTLUtils::mbvFindBestMatch, .id = "sample_id") %>% dplyr::arrange(distance)
+  write_tsv(best_matches, paste0(output_dir, paste0("/tsv/", study_name ,"_MBV_best_matches_matrix.tsv"))) 
+}
 message("## RNA Quality Control is completed! Thank you! ##")``
