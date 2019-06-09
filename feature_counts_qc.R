@@ -72,18 +72,26 @@ se <- eQTLUtils::makeFeatureCountsSummarizedExperiemnt(read_counts, transcript_m
 if (!dir.exists(paste0(output_dir, "/rds/"))){
   dir.create(paste0(output_dir, "/rds/"), recursive = TRUE)
 }
+if (!dir.exists(paste0(output_dir, "/tsv/"))){
+  dir.create(paste0(output_dir, "/tsv/"), recursive = TRUE)
+}
+
+#add assertion checks for needed columns
 study_name <- se$study[1]
 
 message("## Perform PCA calculation ##")
 pca_res <- eQTLUtils::plotPCAAnalysis(study_data_se = se, export_output = generate_plots, html_output = build_html, output_dir = output_dir)
 saveRDS(pca_res, paste0(output_dir, paste0("/rds/", study_name ,"_pca_res.rds")))
+write_tsv(pca_res$pca_matrix, paste0(output_dir, paste0("/tsv/", study_name ,"_pca_matrix.tsv")))
 
 message("## Perform MDS calculation ##")
 mds_res <- eQTLUtils::plotMDSAnalysis(study_data_se = se, export_output = generate_plots, html_output = build_html, output_dir = output_dir)
 saveRDS(mds_res, paste0(output_dir, paste0("/rds/", study_name ,"_mds_res.rds")))
+write_tsv(mds_res, paste0(output_dir, paste0("/tsv/", study_name ,"_mds_matrix.tsv")))
 
 message("## Perform MDS calculation ##")
 sex_spec_gene_exp <- eQTLUtils::plotSexQC(study_data = se, export_output = generate_plots, html_output = build_html, output_dir = output_dir)
 saveRDS(sex_spec_gene_exp, paste0(output_dir, paste0("/rds/", study_name ,"_sex_spec_gene_exp_res.rds")))
+write_tsv(sex_spec_gene_exp, paste0(output_dir, paste0("/tsv/", study_name ,"_sex_spec_gene_exp_matrix.tsv")))
 
-message("## RNA Quality Control is completed! Thank you! ##")
+message("## RNA Quality Control is completed! Thank you! ##")``
