@@ -36,9 +36,9 @@ suppressPackageStartupMessages(library("data.table"))
 #Debugging
 if (FALSE) {
   opt = list()
-  opt$f="featureCounts_matrices/BLUEPRINT/gene_expression_featureCounts.txt"
-  opt$s="sample_metadata/BLUEPRINT_SE.tsv"
-  opt$p="annotations/Ensembl92_biomart_download.txt.gz"
+  opt$f="data/featureCounts_matrices/BLUEPRINT/feature_counts_merged.tsv"
+  opt$s="data/sample_metadata/BLUEPRINT_SE.tsv"
+  opt$p="data/annotations/Ensembl92_biomart_download.txt.gz"
 }
 
 feature_counts_path = opt$f
@@ -75,13 +75,13 @@ transcript_meta <- eQTLUtils::importBiomartMetadata(phenotype_meta_path)
 
 message("## Reading feature counts matrix ##")
 data_fc <- utils::read.csv(feature_counts_path, sep = '\t')
-read_counts = data_fc %>% dplyr::filter(!(gene_id %like% "PAR_Y")) %>% eQTLUtils::removeGeneVersion()
+read_counts = data_fc %>% dplyr::filter(!(phenotype_id %like% "PAR_Y")) %>% eQTLUtils::reformatPhenotypeId()
 
 message("## Reading sample metadata ##")
 sample_metadata <- utils::read.csv(sample_meta_path, sep = '\t')
 
 message("## Make Summarized Experiment ##")
-se <- eQTLUtils::makeFeatureCountsSummarizedExperiemnt(read_counts, transcript_meta, sample_metadata)
+se <- eQTLUtils::makeSummarizedExperimentForQTL(read_counts, transcript_meta, sample_metadata)
 
 if (!dir.exists(paste0(output_dir, "/rds/"))){
   dir.create(paste0(output_dir, "/rds/"), recursive = TRUE)
@@ -118,3 +118,33 @@ if (!is.null(mbv_files_dir)) {
 }
 message("## RNA Quality Control is completed! ##")
 message("## Starting Normalisation process... ##")
+
+cqn_norm <- eQTLUtils::qtltoolsPrepareSE(se, "featureCounts", filter_genotype_qc = FALSE, filter_rna_qc = FALSE)
+
+if (!dir.exists(paste0(output_dir, "/normalised/"))){
+  dir.create(paste0(output_dir, "/normalised/"), recursive = TRUE)
+}
+
+cqn_assay_fc_formatted <-  SummarizedExperiment::cbind(phenotype_id = rownames(assays(cqn_norm)[["cqn"]]), assays(cqn_norm)[["cqn"]])
+write.table(cqn_assay_fc_formatted, paste0(output_dir, paste0("/normalised/", study_name ,"feature_counts_cqn_norm.tsv")), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
