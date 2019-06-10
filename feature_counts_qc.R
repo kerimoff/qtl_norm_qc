@@ -40,6 +40,7 @@ if (FALSE) {
   opt$c="data/featureCounts_matrices/BLUEPRINT/feature_counts_merged.tsv"
   opt$s="data/sample_metadata/BLUEPRINT_SE.tsv"
   opt$p="data/annotations/Ensembl92_biomart_download.txt.gz"
+  opt$m="mbv/"
 }
 
 count_matrix_path = opt$c
@@ -74,68 +75,59 @@ sample_metadata <- utils::read.csv(sample_meta_path, sep = '\t')
 message("## Loading eQTLUtils ##")
 devtools::load_all(eqtl_utils_path)
 
-if (!is.null(count_matrix_path) && quant_method=="ge") {
-  
-  if (build_html) { 
-    message(" ## Loading libraries: plotly")
-    suppressPackageStartupMessages(library("plotly")) 
-  }
-  
-  # Read the inputs
-  message("## Reading featureCounts transcript metadata ##")
-  transcript_meta <- eQTLUtils::importBiomartMetadata(phenotype_meta_path)
-  
-  message("## Reading featureCounts matrix ##")
-  data_fc <- utils::read.csv(count_matrix_path, sep = '\t')
-  read_counts = data_fc %>% dplyr::filter(!(phenotype_id %like% "PAR_Y")) %>% eQTLUtils::reformatPhenotypeId()
 
-  message("## Make Summarized Experiment ##")
-  se <- eQTLUtils::makeSummarizedExperimentForQTL(read_counts, transcript_meta, sample_metadata)
-  
-  if (!dir.exists(paste0(output_dir, "/rds/"))){
-    dir.create(paste0(output_dir, "/rds/"), recursive = TRUE)
-  }
-  if (!dir.exists(paste0(output_dir, "/tsv/"))){
-    dir.create(paste0(output_dir, "/tsv/"), recursive = TRUE)
-  }
-  
-  #add assertion checks for needed columns
-  study_name <- se$study[1]
-  
-  message("## Perform PCA calculation ##")
-  pca_res <- eQTLUtils::plotPCAAnalysis(study_data_se = se, export_output = generate_plots, html_output = build_html, output_dir = output_dir)
-  saveRDS(pca_res, paste0(output_dir, paste0("/rds/", study_name ,"_pca_res.rds")))
-  readr::write_tsv(pca_res$pca_matrix, paste0(output_dir, paste0("/tsv/", study_name ,"_pca_matrix.tsv")))
-  
-  message("## Perform MDS calculation ##")
-  mds_res <- eQTLUtils::plotMDSAnalysis(study_data_se = se, export_output = generate_plots, html_output = build_html, output_dir = output_dir)
-  saveRDS(mds_res, paste0(output_dir, paste0("/rds/", study_name ,"_mds_res.rds")))
-  readr::write_tsv(mds_res, paste0(output_dir, paste0("/tsv/", study_name ,"_mds_matrix.tsv")))
-  
-  message("## Perform MDS calculation ##")
-  sex_spec_gene_exp <- eQTLUtils::plotSexQC(study_data = se, export_output = generate_plots, html_output = build_html, output_dir = output_dir)
-  saveRDS(sex_spec_gene_exp, paste0(output_dir, paste0("/rds/", study_name ,"_sex_spec_gene_exp_res.rds")))
-  readr::write_tsv(sex_spec_gene_exp, paste0(output_dir, paste0("/tsv/", study_name ,"_sex_spec_gene_exp_matrix.tsv")))
-  
-  if (!is.null(mbv_files_dir)) {
-    message("## Perform MBV Analysis ##")
-    mbv_results = eQTLUtils::mbvImportData(mbv_dir = mbv_files_dir, suffix = ".mbv_output.txt")
-    best_matches = purrr::map_df(mbv_results, eQTLUtils::mbvFindBestMatch, .id = "sample_id") %>% dplyr::arrange(distance)
-    readr::write_tsv(best_matches, paste0(output_dir, paste0("/tsv/", study_name ,"_MBV_best_matches_matrix.tsv"))) 
-    
-    eQTLUtils::plot_mbv_results(mbv_files_path = mbv_files_dir, output_path = paste0(output_dir, "/MBV/"))
-  }
-  message("## RNA Quality Control is completed! ##")
-  message("## Starting featureCounts normalisation process... ##")
-  
-  cqn_norm <- eQTLUtils::qtltoolsPrepareSE(se, "featureCounts", filter_genotype_qc = FALSE, filter_rna_qc = FALSE)
-  
-  cqn_assay_fc_formatted <-  SummarizedExperiment::cbind(phenotype_id = rownames(assays(cqn_norm)[["cqn"]]), assays(cqn_norm)[["cqn"]])
-  write.table(cqn_assay_fc_formatted, paste0(output_dir, paste0("/normalised/", study_name ,"feature_counts_cqn_norm.tsv")), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+if (build_html) { 
+  message(" ## Loading libraries: plotly")
+  suppressPackageStartupMessages(library("plotly")) 
 }
 
+# Read the inputs
+message("## Reading featureCounts transcript metadata ##")
+transcript_meta <- eQTLUtils::importBiomartMetadata(phenotype_meta_path)
 
+message("## Reading featureCounts matrix ##")
+data_fc <- utils::read.csv(count_matrix_path, sep = '\t')
+read_counts = data_fc %>% dplyr::filter(!(phenotype_id %like% "PAR_Y")) %>% eQTLUtils::reformatPhenotypeId()
 
+message("## Make Summarized Experiment ##")
+se <- eQTLUtils::makeSummarizedExperimentForQTL(read_counts, transcript_meta, sample_metadata)
+
+if (!dir.exists(paste0(output_dir, "/rds/"))){
+  dir.create(paste0(output_dir, "/rds/"), recursive = TRUE)
+}
+if (!dir.exists(paste0(output_dir, "/tsv/"))){
+  dir.create(paste0(output_dir, "/tsv/"), recursive = TRUE)
+}
+
+#add assertion checks for needed columns
+study_name <- se$study[1]
+
+message("## Perform PCA calculation ##")
+pca_res <- eQTLUtils::plotPCAAnalysis(study_data_se = se, export_output = generate_plots, html_output = build_html, output_dir = output_dir)
+saveRDS(pca_res, paste0(output_dir, paste0("/rds/", study_name ,"_pca_res.rds")))
+readr::write_tsv(pca_res$pca_matrix, paste0(output_dir, paste0("/tsv/", study_name ,"_pca_matrix.tsv")))
+
+message("## Perform MDS calculation ##")
+mds_res <- eQTLUtils::plotMDSAnalysis(study_data_se = se, export_output = generate_plots, html_output = build_html, output_dir = output_dir)
+saveRDS(mds_res, paste0(output_dir, paste0("/rds/", study_name ,"_mds_res.rds")))
+readr::write_tsv(mds_res, paste0(output_dir, paste0("/tsv/", study_name ,"_mds_matrix.tsv")))
+
+message("## Perform MDS calculation ##")
+sex_spec_gene_exp <- eQTLUtils::plotSexQC(study_data = se, export_output = generate_plots, html_output = build_html, output_dir = output_dir)
+saveRDS(sex_spec_gene_exp, paste0(output_dir, paste0("/rds/", study_name ,"_sex_spec_gene_exp_res.rds")))
+readr::write_tsv(sex_spec_gene_exp, paste0(output_dir, paste0("/tsv/", study_name ,"_sex_spec_gene_exp_matrix.tsv")))
+
+if (!is.null(mbv_files_dir)) {
+  message("## Perform MBV Analysis ##")
+  mbv_results = eQTLUtils::mbvImportData(mbv_dir = mbv_files_dir, suffix = ".mbv_output.txt")
+  best_matches = purrr::map_df(mbv_results, eQTLUtils::mbvFindBestMatch, .id = "sample_id") %>% dplyr::arrange(distance)
+  best_matches <- left_join(sample_metadata[,c("sample_id","genotype_id")], best_matches)
+  best_matches$is_correct_match <- best_matches$mbv_genotype_id == best_matches$genotype_id
+  readr::write_tsv(best_matches, paste0(output_dir, paste0("/tsv/", study_name ,"_MBV_best_matches_matrix.tsv"))) 
+  
+  eQTLUtils::plot_mbv_results(mbv_files_path = mbv_files_dir, output_path = paste0(output_dir, "/MBV/"))
+}
+message("## RNA Quality Control is completed! ##")
 
 
 
