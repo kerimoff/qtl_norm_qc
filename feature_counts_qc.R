@@ -99,7 +99,8 @@ if (!dir.exists(paste0(output_dir, "/tsv/"))){
 }
 
 #add assertion checks for needed columns
-study_name <- se$study[1]
+assertthat::has_name(sample_metadata, "study" )
+study_name <- sample_metadata$study[1]
 
 message("## Perform PCA calculation ##")
 pca_res <- eQTLUtils::plotPCAAnalysis(study_data_se = se, export_output = generate_plots, html_output = build_html, output_dir = output_dir)
