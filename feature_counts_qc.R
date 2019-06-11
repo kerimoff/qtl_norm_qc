@@ -37,9 +37,9 @@ suppressPackageStartupMessages(library("data.table"))
 #Debugging
 if (FALSE) {
   opt = list()
-  opt$c="data/featureCounts_matrices/BLUEPRINT/feature_counts_merged.tsv"
-  opt$s="data/sample_metadata/BLUEPRINT_SE.tsv"
-  opt$p="data/annotations/Ensembl92_biomart_download.txt.gz"
+  opt$c="data/featureCounts_matrices/Alasoo_test_data/Alasoo_merged_gene_counts.txt"
+  opt$s="data/sample_metadata/Alasoo_2018.tsv"
+  opt$p="data/annotations/gene_counts_Ensembl_96_phenotype_metadata.tsv.gz"
   opt$m="mbv/"
 }
 
@@ -83,14 +83,13 @@ if (build_html) {
 
 # Read the inputs
 message("## Reading featureCounts transcript metadata ##")
-transcript_meta <- eQTLUtils::importBiomartMetadata(phenotype_meta_path)
+phenotype_meta = readr::read_delim(phenotype_meta_path, delim = "\t", col_types = "ccccciiicciidi")
 
 message("## Reading featureCounts matrix ##")
 data_fc <- utils::read.csv(count_matrix_path, sep = '\t')
-read_counts = data_fc %>% dplyr::filter(!(phenotype_id %like% "PAR_Y")) %>% eQTLUtils::reformatPhenotypeId()
 
 message("## Make Summarized Experiment ##")
-se <- eQTLUtils::makeSummarizedExperimentForQTL(read_counts, transcript_meta, sample_metadata)
+se <- eQTLUtils::makeSummarizedExperimentFromCountMatrix(assay = data_fc, row_data = phenotype_meta, col_data = sample_metadata)
 
 if (!dir.exists(paste0(output_dir, "/rds/"))){
   dir.create(paste0(output_dir, "/rds/"), recursive = TRUE)

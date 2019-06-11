@@ -1,7 +1,7 @@
 Rscript feature_counts_qc.R\
- -f data/featureCounts_matrices/BLUEPRINT/gene_expression_featureCounts.txt\
- -s data/sample_metadata/BLUEPRINT_SE.tsv\
- -p data/annotations/Ensembl92_biomart_download.txt.gz\
- -o ./results/RNA_QC_script_results\
+ -c data/featureCounts_matrices/Alasoo_test_data/Alasoo_merged_gene_counts.txt\
+ -s data/sample_metadata/Alasoo_2018.tsv\
+ -p data/annotations/gene_counts_Ensembl_96_phenotype_metadata.tsv.gz\
+ -o ./results/RNA_QC_script_results_Alasoo\
  -m ./mbv\
  --build_html TRUE
