@@ -21,7 +21,9 @@ option_list <- list(
   make_option(c("--build_html"), type="logical", default=FALSE,
               help="Flag to build plotly html plots [default \"%default\"]", metavar = "bool"),
   make_option(c("-m", "--mbvdir"), type="character", default=NULL,
-              help="Path to the output directory. [default \"%default\"]", metavar = "type")
+              help="Path to the output directory. [default \"%default\"]", metavar = "type"),
+  make_option(c("-n", "--name_of_study"), type="character", default=NULL,
+              help="Name of the study. Optional", metavar = "type")
 )
 
 message(" ## Parsing options")
@@ -52,6 +54,7 @@ generate_plots = opt$g
 build_html = opt$build_html
 mbv_files_dir = opt$m
 quant_method = opt$q
+study_name = opt$n
 
 message("######### Options: ######### ")
 message("######### Working Directory  : ", getwd())
@@ -64,17 +67,14 @@ message("######### eqtl_utils_path    : ", eqtl_utils_path)
 message("######### generate_plots     : ", generate_plots)
 message("######### build_html         : ", build_html)
 message("######### mbv_files_dir      : ", mbv_files_dir)
+message("######### opt_study_name     : ", study_name)
 
 if (!dir.exists(paste0(output_dir, "/normalised/"))){
   dir.create(paste0(output_dir, "/normalised/"), recursive = TRUE)
 }
 
-message("## Reading sample metadata ##")
-sample_metadata <- utils::read.csv(sample_meta_path, sep = '\t')
-
 message("## Loading eQTLUtils ##")
 devtools::load_all(eqtl_utils_path)
-
 
 if (build_html) { 
   message(" ## Loading libraries: plotly")
@@ -82,6 +82,9 @@ if (build_html) {
 }
 
 # Read the inputs
+message("## Reading sample metadata ##")
+sample_metadata <- utils::read.csv(sample_meta_path, sep = '\t')
+
 message("## Reading featureCounts transcript metadata ##")
 phenotype_meta = readr::read_delim(phenotype_meta_path, delim = "\t", col_types = "ccccciiicciidi")
 
@@ -99,8 +102,10 @@ if (!dir.exists(paste0(output_dir, "/tsv/"))){
 }
 
 #add assertion checks for needed columns
-assertthat::has_name(sample_metadata, "study" )
-study_name <- sample_metadata$study[1]
+if (is.null(study_name)) { 
+  assertthat::has_name(sample_metadata, "study" )
+  study_name <- sample_metadata$study[1] 
+}
 
 message("## Perform PCA calculation ##")
 pca_res <- eQTLUtils::plotPCAAnalysis(study_data_se = se, export_output = generate_plots, html_output = build_html, output_dir = output_dir)
