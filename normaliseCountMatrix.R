@@ -33,10 +33,10 @@ suppressPackageStartupMessages(library("data.table"))
 #Debugging
 if (FALSE) {
   opt = list()
-  opt$c="data/featureCounts_matrices/Alasoo_test_data/Alasoo_merged_gene_counts.txt"
+  opt$c="data/counts/Alasoo_test_data/Alasoo_merged_exon_counts.tsv"
   opt$s="data/sample_metadata/Alasoo_2018.tsv"
-  opt$p="data/annotations/gene_counts_Ensembl_96_phenotype_metadata.tsv.gz"
-  opt$q="gene_counts"
+  opt$p="data/annotations/exon_counts_Ensembl_96_phenotype_metadata.tsv.gz"
+  opt$q="exon_counts"
 }
 
 count_matrix_path = opt$c
@@ -57,14 +57,13 @@ message("######### output_dir         : ", output_dir)
 message("######### eqtl_utils_path    : ", eqtl_utils_path)
 message("######### opt_study_name     : ", study_name)
 
-assertthat::assert_that(!is.null(count_matrix_path))
-assertthat::assert_that(!is.null(sample_meta_path))
-assertthat::assert_that(!is.null(phenotype_meta_path))
+dummy <- assertthat::assert_that(!is.null(count_matrix_path) && file.exists(count_matrix_path), msg = paste0("count_matrix_path: \"", count_matrix_path, "\" is missing"))
+dummy <- assertthat::assert_that(!is.null(sample_meta_path) && file.exists(sample_meta_path), msg = paste0("sample_meta_path: \"", sample_meta_path, "\" is missing"))
+dummy <- assertthat::assert_that(!is.null(phenotype_meta_path) && file.exists(phenotype_meta_path), msg =paste0("phenotype_meta_path: \"", phenotype_meta_path, "\" is missing"))
 
 message("## Loading eQTLUtils ##")
 suppressPackageStartupMessages(devtools::load_all(eqtl_utils_path))
 
-message("## ")
 # Read the inputs
 message("## Reading sample metadata ##")
 sample_metadata <- utils::read.csv(sample_meta_path, sep = '\t')
@@ -81,7 +80,7 @@ message("## Reading count matrix ##")
 data_fc <- utils::read.csv(count_matrix_path, sep = '\t')
 
 message("## Make Summarized Experiment ##")
-se <- eQTLUtils::makeSummarizedExperimentFromCountMatrix(assay = data_fc, row_data = phenotype_meta, col_data = sample_metadata)
+se <- eQTLUtils::makeSummarizedExperimentFromCountMatrix(assay = data_fc, row_data = phenotype_meta, col_data = sample_metadata, quant_method = quant_method)
 
 if (!dir.exists(output_dir)){
   dir.create(output_dir, recursive = TRUE)
@@ -90,12 +89,14 @@ if (!dir.exists(output_dir)){
 message("## Starting normalisation process... ##")
 if (quant_method=="gene_counts") {
   cqn_norm <- eQTLUtils::qtltoolsPrepareSE(se, "featureCounts", filter_genotype_qc = FALSE, filter_rna_qc = FALSE)
+  cqn_assay_fc_formatted <- SummarizedExperiment::cbind(phenotype_id = rownames(assays(cqn_norm)[["cqn"]]), assays(cqn_norm)[["cqn"]])
+  write.table(cqn_assay_fc_formatted, paste0(output_dir, paste0(study_name ,"_gene_counts_cqn_norm.tsv")), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
   
-  cqn_assay_fc_formatted <-  SummarizedExperiment::cbind(phenotype_id = rownames(assays(cqn_norm)[["cqn"]]), assays(cqn_norm)[["cqn"]])
-  write.table(cqn_assay_fc_formatted, paste0(output_dir, paste0(study_name ,"_feature_counts_cqn_norm.tsv")), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+  message("## Normalised gene count matrix exported into: ", output_dir, study_name , "_gene_counts_cqn_norm.tsv")
+} else if (quant_method=="exon_counts") {
+  cqn_norm <- eQTLUtils::qtltoolsPrepareSE(se, "featureCounts", filter_genotype_qc = FALSE, filter_rna_qc = FALSE)
+  cqn_assay_fc_formatted <- SummarizedExperiment::cbind(phenotype_id = rownames(assays(cqn_norm)[["cqn"]]), assays(cqn_norm)[["cqn"]])
+  write.table(cqn_assay_fc_formatted, paste0(output_dir, paste0(study_name ,"_exon_counts_cqn_norm.tsv")), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
   
-  message("## Normalised count matrix exported into: ", output_dir, study_name , "_feature_counts_cqn_norm.tsv")
-} else if (quant_method=="tx") {
-  
-  
+  message("## Normalised exon count matrix exported into: ", output_dir, study_name , "_exon_counts_cqn_norm.tsv")
 }
