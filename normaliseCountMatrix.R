@@ -33,10 +33,10 @@ suppressPackageStartupMessages(library("data.table"))
 #Debugging
 if (FALSE) {
   opt = list()
-  opt$c="data/counts/Alasoo_test_data/Alasoo_merged_exon_counts.tsv"
+  opt$c="data/counts/Alasoo_test_data/txrevise/"
   opt$s="data/sample_metadata/Alasoo_2018.tsv"
-  opt$p="data/annotations/exon_counts_Ensembl_96_phenotype_metadata.tsv.gz"
-  opt$q="exon_counts"
+  opt$p="data/annotations/txrevise_Ensembl_96_phenotype_metadata.tsv.gz"
+  opt$q="txrevise"
 }
 
 count_matrix_path = opt$c
@@ -77,7 +77,11 @@ message("## Reading phenotype metadata ##")
 phenotype_meta = readr::read_delim(phenotype_meta_path, delim = "\t", col_types = "ccccciiicciidi")
 
 message("## Reading count matrix ##")
-data_fc <- utils::read.csv(count_matrix_path, sep = '\t')
+if (quant_method=="txrevise") {
+  data_fc <- eQTLUtils::importTxreviseCounts(count_matrix_path)
+} else {
+  data_fc <- utils::read.csv(count_matrix_path, sep = '\t')
+}
 
 message("## Make Summarized Experiment ##")
 se <- eQTLUtils::makeSummarizedExperimentFromCountMatrix(assay = data_fc, row_data = phenotype_meta, col_data = sample_metadata, quant_method = quant_method)
@@ -93,10 +97,19 @@ if (quant_method=="gene_counts") {
   write.table(cqn_assay_fc_formatted, paste0(output_dir, paste0(study_name ,"_gene_counts_cqn_norm.tsv")), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
   
   message("## Normalised gene count matrix exported into: ", output_dir, study_name , "_gene_counts_cqn_norm.tsv")
+  
 } else if (quant_method=="exon_counts") {
   cqn_norm <- eQTLUtils::qtltoolsPrepareSE(se, "featureCounts", filter_genotype_qc = FALSE, filter_rna_qc = FALSE)
   cqn_assay_fc_formatted <- SummarizedExperiment::cbind(phenotype_id = rownames(assays(cqn_norm)[["cqn"]]), assays(cqn_norm)[["cqn"]])
   write.table(cqn_assay_fc_formatted, paste0(output_dir, paste0(study_name ,"_exon_counts_cqn_norm.tsv")), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
   
   message("## Normalised exon count matrix exported into: ", output_dir, study_name , "_exon_counts_cqn_norm.tsv")
+  
+} else if (quant_method=="transcript_usage") {
+  q_norm <- eQTLUtils::qtltoolsPrepareSE(se, "txrevise", filter_genotype_qc = FALSE, filter_rna_qc = FALSE)
+  qnorm_assay_fc_formatted <- SummarizedExperiment::cbind(phenotype_id = rownames(assays(q_norm)[["usage"]]), assays(q_norm)[["usage"]])
+  write.table(qnorm_assay_fc_formatted, paste0(output_dir, paste0(study_name , quant_method, "_qnorm.tsv")), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+  
+  message("## Normalised transcript usage matrix exported into: ", output_dir, study_name, quant_method, "_qnorm.tsv")
+  
 }
