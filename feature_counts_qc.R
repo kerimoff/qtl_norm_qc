@@ -14,8 +14,6 @@ option_list <- list(
               help="Quantification method. Possible values: ge, tx, ex and sp. [default \"%default\"]", metavar = "type"),
   make_option(c("-o", "--outdir"), type="character", default="./RNA_QC_RESULTS/",
               help="Path to the output directory. [default \"%default\"]", metavar = "type"),
-  make_option(c("-e", "--eqtlutils"), type="character", default="./eQTLUtils",
-              help="eQTLUtils path to be loaded by devtools. [default \"%default\"]", metavar = "type"),
   make_option(c("-g", "--generate_plots"), type="logical", default=TRUE,
               help="Flag to generate the plots. [default \"%default\"]", metavar = "bool"),
   make_option(c("--build_html"), type="logical", default=FALSE,
@@ -49,7 +47,6 @@ count_matrix_path = opt$c
 sample_meta_path = opt$s
 phenotype_meta_path = opt$p
 output_dir = opt$o
-eqtl_utils_path = opt$e
 generate_plots = opt$g
 build_html = opt$build_html
 mbv_files_dir = opt$m
@@ -63,7 +60,6 @@ message("######### count_matrix_path  : ", count_matrix_path)
 message("######### sample_meta_path   : ", sample_meta_path)
 message("######### phenotype_meta_path: ", phenotype_meta_path)
 message("######### output_dir         : ", output_dir)
-message("######### eqtl_utils_path    : ", eqtl_utils_path)
 message("######### generate_plots     : ", generate_plots)
 message("######### build_html         : ", build_html)
 message("######### mbv_files_dir      : ", mbv_files_dir)
@@ -72,9 +68,6 @@ message("######### opt_study_name     : ", study_name)
 if (!dir.exists(paste0(output_dir, "/normalised/"))){
   dir.create(paste0(output_dir, "/normalised/"), recursive = TRUE)
 }
-
-message("## Loading eQTLUtils ##")
-devtools::load_all(eqtl_utils_path)
 
 if (build_html) { 
   message(" ## Loading libraries: plotly")
