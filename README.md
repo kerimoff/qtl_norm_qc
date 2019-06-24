@@ -46,15 +46,6 @@ The all the software needed is containerized into the Docker container
 ## Using Docker Container
 All required dependencies are built into the Docker container. 
 
-Docker container can be build from a provided Dockerfile recipe or can be pulled from DockerHub
-
-### Using the provided Docker recipe (Dockerfile) to build the docker image
-  
-To build a docker container with Dockerfile recipe (be sure that you are in the `featurecounts_qc` directory) run:
-```bash
-docker build -t kerimoff/featurecounts_qc .
-```
-
 ### Using the ready-to-use container (DockerHub)
 
 To use the pre-built container located in DockerHub no additional steps required. When the container with `kerimoff/featurecounts_qc` tag is run docker checks the existing images in local computer and if it does not exist it automatically tries to pull it from DockerHub.
@@ -62,9 +53,9 @@ To use the pre-built container located in DockerHub no additional steps required
 ### Executing the script with Docker container
 To execute the script we should first run the container.
 ```bash
-docker run -idt -v "$(pwd)":/fc_qc_dir -w /fc_qc_dir --name fc_qc_container kerimoff/featurecounts_qc bash
+docker run -idt -v "$(pwd)":/fc_qc_dir -w /fc_qc_dir --name fc_qc_container kauralasoo/eqtlutils bash
 ```
-This will start our container (with `fc_qc_container` name) in detached mode and mount our directory `featurecounts_qc` to `/fc_qc_dir` directory of running container. 
+This will start our container (with `fc_qc_container` name) in detached mode and mount current directory `featurecounts_qc` to `/fc_qc_dir` directory of running container. 
 
 To check if the your container's status you can run
 ```bash
