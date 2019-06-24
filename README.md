@@ -34,8 +34,8 @@ The script generates the best-matches as a tab separated table and scatter plot 
 # Running the QC
 **To run the featurecounts_qc this github repository should be cloned (downloaded) into the local machine and navigated into the cloned folder:**
 ```bash
-git clone https://github.com/kerimoff/featurecounts_qc.git
-cd featurecounts_qc
+git clone https://github.com/kerimoff/qtl_norm_qc.git
+cd qtl_norm_qc
 ```
 
 The all the software needed is containerized into the Docker container
