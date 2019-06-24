@@ -32,7 +32,7 @@ We generate a scatter plot with XIST gene ([ENSG00000229807](http://www.ensembl.
 # Running the script
 **To run the featurecounts_qc this github repository should be cloned (downloaded) into the local machine and navigated into the cloned folder:**
 ```bash
-git pull https://github.com/kerimoff/featurecounts_qc.git
+git clone https://github.com/kerimoff/featurecounts_qc.git
 cd featurecounts_qc
 ```
 
@@ -79,7 +79,7 @@ To use the pre-built container located in DockerHub no additional steps required
 ### Executing the script with Docker container
 To execute the script we should first run the container.
 ```bash
-docker run -idt -v "$(pwd)":/fc_qc_dir -w /fc_qc_dir --name fc_qc_container kerimoff/featurecounts_qc
+docker run -idt -v "$(pwd)":/fc_qc_dir -w /fc_qc_dir --name fc_qc_container kerimoff/featurecounts_qc bash
 ```
 This will start our container (with `fc_qc_container` name) in detached mode and mount our directory `featurecounts_qc` to `/fc_qc_dir` directory of running container. 
 
