@@ -37,8 +37,72 @@ The script generates the best-matches as a tab separated table and scatter plot 
 git clone https://github.com/kerimoff/qtl_norm_qc.git
 cd qtl_norm_qc
 ```
+`normaliseCountMatrix.R` script accepts the following parameters
 
-The all the software needed is containerized into the Docker container
+## Mandatory QC parameters
+### `--count_matrix` or `-c`
+Counts matrix file path. Tab separated file
+
+### `--sample_meta` or `-s`
+Sample metadata file. Tab separated file
+
+### `--phenotype_meta` or `-p`
+Phenotype metadata file. Tab separated file
+
+## Optional QC Parameters
+
+### `--quant_method` or `-q`
+Quantification method. Possible values: _gene_counts_, _leafcutter_, _txrevise_, _transcript_usage_ and _exon_counts_
+
+**Default Value: gene_counts**
+
+### `--outdir` or `-o`
+Path to the output directory
+
+**Default Value: ./normalised_results/**
+
+### `--name_of_study` or `-n`
+Custom name of the study. **Optional** . The study name by default will be extracted from sample metadata file. Will be overwritten with this parameter if provided
+
+### `--build_html` 
+Flag to build plotly html plots
+**Default Value: FALSE**
+
+### `--mbvdir` or `-m`
+Path to the location where MBV quantification files are. **Optional** 
+
+***Example QC running script can be found in [here](https://github.com/kerimoff/qtl_norm_qc/blob/master/run_fc_qc.sh)***
+
+# Running the Normalisation
+
+### `--count_matrix` or `-c`
+Counts matrix file path. Tab separated file
+
+### `--sample_meta` or `-s`
+Sample metadata file. Tab separated file
+
+### `--phenotype_meta` or `-p`
+Phenotype metadata file. Tab separated file
+
+## Optional QC Parameters
+
+### `--quant_method` or `-q`
+Quantification method. Possible values: _gene_counts_, _leafcutter_, _txrevise_, _transcript_usage_ and _exon_counts_
+
+**Default Value: gene_counts**
+
+### `--outdir` or `-o`
+Path to the output directory
+
+**Default Value: ./normalised_results/**
+
+### `--name_of_study` or `-n`
+Custom name of the study. **Optional** . The study name by default will be extracted from sample metadata file. Will be overwritten with this parameter if provided
+
+***Example Normalisation running script can be found in [here](https://github.com/kerimoff/qtl_norm_qc/blob/master/run_fc_norm_all_Alasoo_2019.sh)***
+
+# Using Software Container to perform QC and Normalisation
+All the software needed is containerised into the Docker container and pushed into DockerHub
 
 * Using [Docker](https://www.docker.com/) Container 
 * Using [Singularity](https://www.sylabs.io/docs/) Container
@@ -48,12 +112,12 @@ All required dependencies are built into the Docker container.
 
 ### Using the ready-to-use container (DockerHub)
 
-To use the pre-built container located in DockerHub no additional steps required. When the container with `kerimoff/featurecounts_qc` tag is run docker checks the existing images in local computer and if it does not exist it automatically tries to pull it from DockerHub.
+To use the pre-built container located in DockerHub no additional steps required. When the container with `kerimoff/eqtlutils` tag is run docker checks the existing images in local computer and if it does not exist it automatically tries to pull it from DockerHub.
 
 ### Executing the script with Docker container
 To execute the script we should first run the container.
 ```bash
-docker run -idt -v "$(pwd)":/work_dir -w /work_dir --name qtl_norm_qc_cont kauralasoo/eqtlutils bash
+docker run -idt -v "$(pwd)":/work_dir -w /work_dir --name qtl_norm_qc_cont kerimoff/eqtlutils bash
 ```
 This will start our container (with `qtl_norm_qc_cont` name) in detached mode and mount current directory `qtl_norm_qc` to `/work_dir` directory of running container. 
 
@@ -63,37 +127,17 @@ docker ps -a
 ```
 You will see that there is a running container with the `qtl_norm_qc_cont` name (usually in first row)
 
-You should move your data (or create a symlink) into `qtl_norm_qc` folder in order to make it available to running container. 
-
+To execute the normalisation or QC just execute the bash script you created with `bash` command
 ```bash
-docker exec -it qtl_norm_qc_cont Rscript feature_counts_qc.R\
- -f data/path/to/featureCountsMatrix.txt\
- -s data/path/to/sampleMetadata.tsv\
- -p data/path/to/phenotypeMetadata.txt.gz\
- -o ./RNA_QC_script_results\
- -m ./mbv\
- --build_html TRUE
-```
-
-Or it is more readable and user-friendly if you create a shell script (as we did with example data) and execute the script
-
-```bash
-# This is the content of run_fc_qc.sh
-Rscript feature_counts_qc.R\
- -f data/path/to/featureCountsMatrix.txt\
- -s data/path/to/sampleMetadata.tsv\
- -p data/path/to/phenotypeMetadata.txt.gz\
- -o ./RNA_QC_script_results\
- -m ./mbv\
- --build_html TRUE
-```
-
-and then execute this shell script
-
-```bash
-chmod +x run_fc_qc.sh
 docker exec -it fc_qc_container bash run_fc_qc.sh
 ```
 
 ## Using Singularity Container
+It is straight forward to run the scripts with singularity container. 
 
+```bash
+singularity exec -B /path/in/host/:/path/in/container/ docker://kerimoff/eqtlutils bash run_fc_qc.sh
+```
+Running this command will automatically download the `kerimoff/eqtlutils` from DockerHub and run the `run_fc_qc.sh` script.
+
+`-B` flag is Binding path in your host computer to path inside the container. So, be sure that your data to be processed is reachable by container.
