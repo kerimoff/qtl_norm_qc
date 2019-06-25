@@ -18,21 +18,26 @@ option_list <- list(
               help="Flag to generate the plots. [default \"%default\"]", metavar = "bool"),
   make_option(c("--build_html"), type="logical", default=FALSE,
               help="Flag to build plotly html plots [default \"%default\"]", metavar = "bool"),
-  make_option(c("-m", "--mbvdir"), type="character", default=NULL,
-              help="Path to the output directory. [default \"%default\"]", metavar = "type"),
+  make_option(c("--mbvdir"), type="character", default=NULL,
+              help="Path to the MBV output directory. [default \"%default\"]", metavar = "type"),
   make_option(c("-n", "--name_of_study"), type="character", default=NULL,
-              help="Name of the study. Optional", metavar = "type")
+              help="Name of the study. Optional", metavar = "type"),
+  make_option(c("--filter_qc"), type="logical", default=FALSE,
+              help="Flag to filter out samples that have failed QC [default \"%default\"]", metavar = "bool"),
+  make_option(c("--make_mbv_plots"), type="logical", default=FALSE,
+              help="Make all sample-level MBV plots. Note that these files can be very big [default \"%default\"]", metavar = "bool")
 )
 
 message(" ## Parsing options")
 opt <- parse_args(OptionParser(option_list=option_list))
 
-message(" ## Loading libraries: devtools, dplyr, SummarizedExperiment, cqn, data.table")
+message(" ## Loading libraries: devtools, dplyr, SummarizedExperiment, cqn, data.table, ggplot2")
 suppressPackageStartupMessages(library("devtools"))
 suppressPackageStartupMessages(library("dplyr"))
 suppressPackageStartupMessages(library("SummarizedExperiment"))
 suppressPackageStartupMessages(library("cqn"))
 suppressPackageStartupMessages(library("data.table"))
+suppressPackageStartupMessages(library("ggplot2"))
 
 #Debugging
 if (FALSE) {
@@ -42,6 +47,9 @@ if (FALSE) {
   opt$p="data/annotations/gene_counts_Ensembl_96_phenotype_metadata.tsv.gz"
   opt$m="mbv/"
 }
+if (TRUE){
+  devtools::load_all("/gpfs/hpchome/a72094/projects/eQTLUtils")
+}
 
 count_matrix_path = opt$c
 sample_meta_path = opt$s
@@ -49,7 +57,9 @@ phenotype_meta_path = opt$p
 output_dir = opt$o
 generate_plots = opt$g
 build_html = opt$build_html
-mbv_files_dir = opt$m
+filter_qc = opt$filter_qc
+make_mbv_plots = opt$make_mbv_plots
+mbv_files_dir = opt$mbvdir
 quant_method = opt$q
 study_name = opt$n
 
@@ -64,6 +74,9 @@ message("######### generate_plots     : ", generate_plots)
 message("######### build_html         : ", build_html)
 message("######### mbv_files_dir      : ", mbv_files_dir)
 message("######### opt_study_name     : ", study_name)
+message("######### make_mbv_plots     : ", make_mbv_plots)
+message("######### filter_qc          : ", filter_qc)
+
 
 if (!dir.exists(paste0(output_dir, "/normalised/"))){
   dir.create(paste0(output_dir, "/normalised/"), recursive = TRUE)
@@ -76,7 +89,7 @@ if (build_html) {
 
 # Read the inputs
 message("## Reading sample metadata ##")
-sample_metadata <- utils::read.csv(sample_meta_path, sep = '\t')
+sample_metadata <- utils::read.csv(sample_meta_path, sep = '\t', stringsAsFactors = FALSE)
 
 message("## Reading featureCounts transcript metadata ##")
 phenotype_meta = readr::read_delim(phenotype_meta_path, delim = "\t", col_types = "ccccciiicciidi")
@@ -87,11 +100,19 @@ data_fc <- utils::read.csv(count_matrix_path, sep = '\t')
 message("## Make Summarized Experiment ##")
 se <- eQTLUtils::makeSummarizedExperimentFromCountMatrix(assay = data_fc, row_data = phenotype_meta, col_data = sample_metadata)
 
+if (filter_qc){
+  message("## Filter SummarizedExperiment by removing samples that fail QC ##")
+  se <- eQTLUtils::filterSummarizedExperiment(se, filter_rna_qc = TRUE, filter_genotype_qc = TRUE)
+}
+
 if (!dir.exists(paste0(output_dir, "/rds/"))){
   dir.create(paste0(output_dir, "/rds/"), recursive = TRUE)
 }
 if (!dir.exists(paste0(output_dir, "/tsv/"))){
   dir.create(paste0(output_dir, "/tsv/"), recursive = TRUE)
+}
+if (!dir.exists(paste0(output_dir, "/median_tpm/"))){
+  dir.create(paste0(output_dir, "/median_tpm/"), recursive = TRUE)
 }
 
 #add assertion checks for needed columns
@@ -110,20 +131,29 @@ mds_res <- eQTLUtils::plotMDSAnalysis(study_data_se = se, export_output = genera
 saveRDS(mds_res, paste0(output_dir, paste0("/rds/", study_name ,"_mds_res.rds")))
 readr::write_tsv(mds_res, paste0(output_dir, paste0("/tsv/", study_name ,"_mds_matrix.tsv")))
 
-message("## Perform MDS calculation ##")
+message("## Perform sex-specific gene expression analysis ##")
 sex_spec_gene_exp <- eQTLUtils::plotSexQC(study_data = se, export_output = generate_plots, html_output = build_html, output_dir = output_dir)
 saveRDS(sex_spec_gene_exp, paste0(output_dir, paste0("/rds/", study_name ,"_sex_spec_gene_exp_res.rds")))
 readr::write_tsv(sex_spec_gene_exp, paste0(output_dir, paste0("/tsv/", study_name ,"_sex_spec_gene_exp_matrix.tsv")))
+
+message("## Caclulate median TPM in each biological context ##")
+median_tpm_df = eQTLUtils::estimateMedianTPM(se, subset_by = "qtl_group", assay_name = "counts")
+gzfile = gzfile(paste0(output_dir, paste0("/median_tpm/", study_name ,"_median_tpm.tsv.gz")), "w")
+write.table(median_tpm_df, gzfile, sep = "\t", row.names = F, quote = F)
+close(gzfile)
 
 if (!is.null(mbv_files_dir)) {
   message("## Perform MBV Analysis ##")
   mbv_results = eQTLUtils::mbvImportData(mbv_dir = mbv_files_dir, suffix = ".mbv_output.txt")
   best_matches = purrr::map_df(mbv_results, eQTLUtils::mbvFindBestMatch, .id = "sample_id") %>% dplyr::arrange(distance)
-  best_matches <- left_join(sample_metadata[,c("sample_id","genotype_id")], best_matches)
+  mbv_meta = SummarizedExperiment::colData(se) %>% as.data.frame() %>% dplyr::as_tibble() %>% dplyr::select(sample_id, genotype_id)
+  best_matches <- dplyr::left_join(mbv_meta, best_matches, by = "sample_id")
   best_matches$is_correct_match <- best_matches$mbv_genotype_id == best_matches$genotype_id
   readr::write_tsv(best_matches, paste0(output_dir, paste0("/tsv/", study_name ,"_MBV_best_matches_matrix.tsv"))) 
   
-  eQTLUtils::plot_mbv_results(mbv_files_path = mbv_files_dir, output_path = paste0(output_dir, "/MBV/"))
+  if(make_mbv_plots){
+    eQTLUtils::plot_mbv_results(mbv_files_path = mbv_files_dir, output_path = paste0(output_dir, "/MBV/"))
+  }
 }
 message("## RNA Quality Control is completed! ##")
 
