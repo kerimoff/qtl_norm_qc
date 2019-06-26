@@ -46,6 +46,7 @@ output_dir = opt$o
 eqtl_utils_path = opt$e
 quant_method = opt$q
 study_name = opt$n
+filter_qc = opt$filter_qc
 
 message("######### Options: ######### ")
 message("######### Working Directory  : ", getwd())
@@ -55,6 +56,7 @@ message("######### sample_meta_path   : ", sample_meta_path)
 message("######### phenotype_meta_path: ", phenotype_meta_path)
 message("######### output_dir         : ", output_dir)
 message("######### opt_study_name     : ", study_name)
+message("######### filter_qc          : ", filter_qc)
 
 dummy <- assertthat::assert_that(!is.null(count_matrix_path) && file.exists(count_matrix_path), msg = paste0("count_matrix_path: \"", count_matrix_path, "\" is missing"))
 dummy <- assertthat::assert_that(!is.null(sample_meta_path) && file.exists(sample_meta_path), msg = paste0("sample_meta_path: \"", sample_meta_path, "\" is missing"))
