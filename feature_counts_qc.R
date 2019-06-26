@@ -137,9 +137,15 @@ saveRDS(sex_spec_gene_exp, paste0(output_dir, paste0("/rds/", study_name ,"_sex_
 readr::write_tsv(sex_spec_gene_exp, paste0(output_dir, paste0("/tsv/", study_name ,"_sex_spec_gene_exp_matrix.tsv")))
 
 # message("## Caclulate median TPM in each biological context ##")
-median_tpm_df = eQTLUtils::estimateMedianTPM(se, subset_by = "qtl_group", assay_name = "counts")
+median_tpm_df = eQTLUtils::estimateMedianTPM(se, subset_by = "qtl_group", assay_name = "counts", prob = 0.5)
 gzfile = gzfile(paste0(output_dir, paste0("/median_tpm/", study_name ,"_median_tpm.tsv.gz")), "w")
 write.table(median_tpm_df, gzfile, sep = "\t", row.names = F, quote = F)
+close(gzfile)
+
+# message("## Caclulate 95% quantile TPM in each biological context ##")
+quantile_tpm_df = eQTLUtils::estimateMedianTPM(se, subset_by = "qtl_group", assay_name = "counts", prob = 0.5)
+gzfile = gzfile(paste0(output_dir, paste0("/median_tpm/", study_name ,"_95quantile_tpm.tsv.gz")), "w")
+write.table(quantile_tpm_df, gzfile, sep = "\t", row.names = F, quote = F)
 close(gzfile)
 
 if (!is.null(mbv_files_dir)) {
