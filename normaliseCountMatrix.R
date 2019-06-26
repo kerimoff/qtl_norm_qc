@@ -4,18 +4,20 @@ suppressPackageStartupMessages(library("optparse"))
 #Parse command-line options
 option_list <- list(
   #TODO look around if there is a package recognizing delimiter in dataset
-  optparse::make_option(c("-c", "--count_matrix"), type="character", default=NULL,
+  make_option(c("-c", "--count_matrix"), type="character", default=NULL,
               help="Counts matrix file path. Tab separated file", metavar = "type"),
-  optparse::make_option(c("-s", "--sample_meta"), type="character", default=NULL,
+  make_option(c("-s", "--sample_meta"), type="character", default=NULL,
               help="Sample metadata file. Tab separated file", metavar = "type"),
-  optparse::make_option(c("-p", "--phenotype_meta"), type="character", default=NULL,
+  make_option(c("-p", "--phenotype_meta"), type="character", default=NULL,
               help="Phenotype metadata file. Tab separated file", metavar = "type"),
-  optparse::make_option(c("-q", "--quant_method"), type="character", default="gene_counts",
+  make_option(c("-q", "--quant_method"), type="character", default="gene_counts",
               help="Quantification method. Possible values: gene_counts, leafcutter, txrevise, transcript_usage and exon_counts [default \"%default\"]", metavar = "type"),
-  optparse::make_option(c("-o", "--outdir"), type="character", default="./normalised_results/",
+  make_option(c("-o", "--outdir"), type="character", default="./normalised_results/",
               help="Path to the output directory. [default \"%default\"]", metavar = "type"),
-  optparse::make_option(c("-n", "--name_of_study"), type="character", default=NULL,
-              help="Name of the study. Optional", metavar = "type")
+  make_option(c("-n", "--name_of_study"), type="character", default=NULL,
+              help="Name of the study. Optional", metavar = "type"),
+  make_option(c("--filter_qc"), type="logical", default=FALSE,
+              help="Flag to filter out samples that have failed QC [default \"%default\"]", metavar = "bool")
 )
 
 message(" ## Parsing options")
@@ -79,6 +81,11 @@ if (quant_method=="txrevise") {
 
 message("## Make Summarized Experiment ##")
 se <- eQTLUtils::makeSummarizedExperimentFromCountMatrix(assay = data_fc, row_data = phenotype_meta, col_data = sample_metadata, quant_method = quant_method)
+
+if (filter_qc){
+  message("## Filter SummarizedExperiment by removing samples that fail QC ##")
+  se <- eQTLUtils::filterSummarizedExperiment(se, filter_rna_qc = TRUE, filter_genotype_qc = TRUE)
+}
 
 if (!dir.exists(output_dir)){
   dir.create(output_dir, recursive = TRUE)
