@@ -143,7 +143,7 @@ write.table(median_tpm_df, gzfile, sep = "\t", row.names = F, quote = F)
 close(gzfile)
 
 # message("## Caclulate 95% quantile TPM in each biological context ##")
-quantile_tpm_df = eQTLUtils::estimateMedianTPM(se, subset_by = "qtl_group", assay_name = "counts", prob = 0.5)
+quantile_tpm_df = eQTLUtils::estimateMedianTPM(se, subset_by = "qtl_group", assay_name = "counts", prob = 0.95)
 gzfile = gzfile(paste0(output_dir, paste0("/median_tpm/", study_name ,"_95quantile_tpm.tsv.gz")), "w")
 write.table(quantile_tpm_df, gzfile, sep = "\t", row.names = F, quote = F)
 close(gzfile)
