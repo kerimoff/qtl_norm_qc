@@ -75,10 +75,13 @@ message("## Reading phenotype metadata ##")
 phenotype_meta = readr::read_delim(phenotype_meta_path, delim = "\t", col_types = "ccccciiicciidi")
 
 message("## Reading count matrix ##")
-if (quant_method=="txrevise") {
+if (quant_method == "txrevise") {
   data_fc <- eQTLUtils::importTxreviseCounts(count_matrix_path)
+} else if (quant_method == "leafcutter") {
+  #Use any number of white spaces for leafcutter data (mixed spaces and tabs in the header, needs to be fixed)
+  data_fc <- utils::read.csv(count_matrix_path, sep = "", stringsAsFactors = FALSE)
 } else {
-  data_fc <- utils::read.csv(count_matrix_path, sep = '\t')
+  data_fc <- utils::read.csv(count_matrix_path, sep = '\t', stringsAsFactors = FALSE)
 }
 
 message("## Make Summarized Experiment ##")
