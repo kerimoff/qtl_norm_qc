@@ -25,7 +25,9 @@ option_list <- list(
   make_option(c("--filter_qc"), type="logical", default=FALSE,
               help="Flag to filter out samples that have failed QC [default \"%default\"]", metavar = "bool"),
   make_option(c("--make_mbv_plots"), type="logical", default=FALSE,
-              help="Make all sample-level MBV plots. Note that these files can be very big [default \"%default\"]", metavar = "bool")
+              help="Make all sample-level MBV plots. Note that these files can be very big [default \"%default\"]", metavar = "bool"),
+  make_option(c("--eqtlutils"), type="character", default=NULL,
+              help="Optional path to the eQTLUtils R package location. If not specified then eQTLUtils is assumed to be installed in the container. [default \"%default\"]", metavar = "type")
 )
 
 message(" ## Parsing options")
@@ -47,9 +49,6 @@ if (FALSE) {
   opt$p="data/annotations/gene_counts_Ensembl_96_phenotype_metadata.tsv.gz"
   opt$m="mbv/"
 }
-if (TRUE){
-  devtools::load_all("/gpfs/hpchome/a72094/projects/eQTLUtils")
-}
 
 count_matrix_path = opt$c
 sample_meta_path = opt$s
@@ -62,6 +61,7 @@ make_mbv_plots = opt$make_mbv_plots
 mbv_files_dir = opt$mbvdir
 quant_method = opt$q
 study_name = opt$n
+eqtlutils_path = opt$eqtlutils
 
 message("######### Options: ######### ")
 message("######### Working Directory  : ", getwd())
@@ -76,7 +76,12 @@ message("######### mbv_files_dir      : ", mbv_files_dir)
 message("######### opt_study_name     : ", study_name)
 message("######### make_mbv_plots     : ", make_mbv_plots)
 message("######### filter_qc          : ", filter_qc)
+message("######### eqtlutils_path     : ", eqtlutils_path)
 
+#Load eQTLUtils
+if (!is.null(eqtlutils_path)){
+  devtools::load_all(eqtlutils_path)
+}
 
 if (!dir.exists(paste0(output_dir, "/normalised/"))){
   dir.create(paste0(output_dir, "/normalised/"), recursive = TRUE)

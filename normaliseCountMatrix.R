@@ -17,7 +17,9 @@ option_list <- list(
   make_option(c("-n", "--name_of_study"), type="character", default=NULL,
               help="Name of the study. Optional", metavar = "type"),
   make_option(c("--filter_qc"), type="logical", default=FALSE,
-              help="Flag to filter out samples that have failed QC [default \"%default\"]", metavar = "bool")
+              help="Flag to filter out samples that have failed QC [default \"%default\"]", metavar = "bool"),
+  make_option(c("--eqtlutils"), type="character", default=NULL,
+              help="Optional path to the eQTLUtils R package location. If not specified then eQTLUtils is assumed to be installed in the container. [default \"%default\"]", metavar = "type")
 )
 
 message(" ## Parsing options")
@@ -39,6 +41,10 @@ if (FALSE) {
   opt$q="txrevise"
 }
 
+if (TRUE){
+  devtools::load_all("../eQTLUtils")
+}
+
 count_matrix_path = opt$c
 sample_meta_path = opt$s
 phenotype_meta_path = opt$p
@@ -47,6 +53,7 @@ eqtl_utils_path = opt$e
 quant_method = opt$q
 study_name = opt$n
 filter_qc = opt$filter_qc
+eqtlutils_path = opt$eqtlutils
 
 message("######### Options: ######### ")
 message("######### Working Directory  : ", getwd())
@@ -57,6 +64,12 @@ message("######### phenotype_meta_path: ", phenotype_meta_path)
 message("######### output_dir         : ", output_dir)
 message("######### opt_study_name     : ", study_name)
 message("######### filter_qc          : ", filter_qc)
+message("######### eqtlutils_path     : ", eqtlutils_path)
+
+#Load eQTLUtils
+if (!is.null(eqtlutils_path)){
+  devtools::load_all(eqtlutils_path)
+}
 
 dummy <- assertthat::assert_that(!is.null(count_matrix_path) && file.exists(count_matrix_path), msg = paste0("count_matrix_path: \"", count_matrix_path, "\" is missing"))
 dummy <- assertthat::assert_that(!is.null(sample_meta_path) && file.exists(sample_meta_path), msg = paste0("sample_meta_path: \"", sample_meta_path, "\" is missing"))
@@ -83,9 +96,11 @@ if (quant_method == "txrevise") {
 } else {
   data_fc <- utils::read.csv(count_matrix_path, sep = '\t', stringsAsFactors = FALSE)
 }
+print(data_fc[1:5, 1:5])
 
 message("## Make Summarized Experiment ##")
 se <- eQTLUtils::makeSummarizedExperimentFromCountMatrix(assay = data_fc, row_data = phenotype_meta, col_data = sample_metadata, quant_method = quant_method)
+se
 
 if (filter_qc){
   message("## Filter SummarizedExperiment by removing samples that fail QC ##")
@@ -113,6 +128,13 @@ if (quant_method=="gene_counts") {
   
 } else if (quant_method %in% c("transcript_usage", "txrevise")) {
   q_norm <- eQTLUtils::qtltoolsPrepareSE(se, "txrevise", filter_genotype_qc = FALSE, filter_rna_qc = FALSE)
+  qnorm_assay_fc_formatted <- SummarizedExperiment::cbind(phenotype_id = rownames(assays(q_norm)[["usage"]]), assays(q_norm)[["usage"]])
+  utils::write.table(qnorm_assay_fc_formatted, paste0(output_dir, paste0(study_name, "." , quant_method, "_qnorm.tsv")), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+  
+  message("## Normalised transcript usage matrix exported into: ", output_dir, study_name, ".", quant_method, "_qnorm.tsv")
+  
+} else if (quant_method == "leafcutter") {
+  q_norm <- eQTLUtils::qtltoolsPrepareSE(se, "leafcutter", filter_genotype_qc = FALSE, filter_rna_qc = FALSE)
   qnorm_assay_fc_formatted <- SummarizedExperiment::cbind(phenotype_id = rownames(assays(q_norm)[["usage"]]), assays(q_norm)[["usage"]])
   utils::write.table(qnorm_assay_fc_formatted, paste0(output_dir, paste0(study_name, "." , quant_method, "_qnorm.tsv")), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
   

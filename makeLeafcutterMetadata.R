@@ -11,7 +11,9 @@ option_list <- list(
   make_option(c("-i", "--intron_annotations"), type="character", default=NULL,
               help="Leafcutter intron annotations extracted from transcriptome GTF file.", metavar = "type"),
   make_option(c("-o", "--out"), type="character", default=NULL,
-              help="Output file path.", metavar = "type")
+              help="Output file path.", metavar = "type"),
+  make_option(c("--eqtlutils"), type="character", default=NULL,
+              help="Optional path to the eQTLUtils R package location. If not specified then eQTLUtils is assumed to be installed in the container. [default \"%default\"]", metavar = "type")
 )
 
 message(" ## Parsing options")
@@ -21,6 +23,7 @@ count_matrix_path = opt$c
 transcript_meta_path = opt$t
 intron_annotation_path = opt$i
 output_file_path = opt$o
+eqtlutils_path = opt$eqtlutils
 
 
 message("######### Options: ######### ")
@@ -29,10 +32,12 @@ message("######### count_matrix_path      : ", count_matrix_path)
 message("######### transcript_meta_path   : ", transcript_meta_path)
 message("######### intron_annotation_path : ", intron_annotation_path)
 message("######### output_file_path       : ", output_file_path)
+message("######### eqtlutils_path         : ", eqtlutils_path)
 
-message(" ## Loading packages")
-if (TRUE){
-  devtools::load_all("/gpfs/hpchome/a72094/projects/eQTLUtils")
+
+#Load eQTLUtils
+if (!is.null(eqtlutils_path)){
+  devtools::load_all(eqtlutils_path)
 }
 
 #Import data
