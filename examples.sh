@@ -3,7 +3,7 @@ module load singularity
 export SINGULARITY_BINDPATH="/gpfs/hpc" # You can add this line to your ~/.bashrc file 
 
 ### Build a local copy of the Singularity container
-singularity build qtl_norm_qc.img docker://kauralasoo/eqtlutils:latest
+singularity build qtl_norm_qc.img docker://kauralasoo/eqtlutils:96d357d24e1b14e312298bdbd2deb0fd408660a3
 
 # Make leafcutter phenotype metadata file
 singularity exec qtl_norm_qc.img Rscript makeLeafcutterMetadata.R\
