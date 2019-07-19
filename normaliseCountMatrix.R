@@ -41,10 +41,6 @@ if (FALSE) {
   opt$q="txrevise"
 }
 
-if (TRUE){
-  devtools::load_all("../eQTLUtils")
-}
-
 count_matrix_path = opt$c
 sample_meta_path = opt$s
 phenotype_meta_path = opt$p
