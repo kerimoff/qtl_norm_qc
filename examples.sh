@@ -10,7 +10,7 @@ singularity exec qtl_norm_qc.img Rscript makeLeafcutterMetadata.R\
  -c /gpfs/hpc/home/a72094/datasets/processed/GENCORD/leafcutter/leafcutter_perind_numers.counts.formatted.gz\
  -t /gpfs/hpc/home/a72094/annotations/eQTLCatalogue/v0.1/Homo_sapiens.GRCh38.96_biomart_download.txt.gz\
  -i /gpfs/hpc/home/a72094/annotations/eQTLCatalogue/v0.1/leafcutter_annotations/gencode_v30_all_introns.bed.gz\
- -o leafcutter_metadata.txt.gz
+ -o leafcutter_metadata.txt.gz\
  --eqtlutils /gpfs/hpc/home/a72094/projects/eQTLUtils/
 
  #Normalise leafcutter matrix
