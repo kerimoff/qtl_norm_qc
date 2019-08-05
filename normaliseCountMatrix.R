@@ -111,16 +111,16 @@ message("## Starting normalisation process... ##")
 if (quant_method=="gene_counts") {
   cqn_norm <- eQTLUtils::qtltoolsPrepareSE(se, "gene_counts", filter_genotype_qc = FALSE, filter_rna_qc = FALSE)
   cqn_assay_fc_formatted <- SummarizedExperiment::cbind(phenotype_id = rownames(assays(cqn_norm)[["cqn"]]), assays(cqn_norm)[["cqn"]])
-  utils::write.table(cqn_assay_fc_formatted, file.path(output_dir, paste0(study_name ,"_gene_counts_cqn_norm.tsv")), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+  utils::write.table(cqn_assay_fc_formatted, file.path(output_dir, paste0(study_name ,".gene_counts_cqn_norm.tsv")), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
   
-  message("## Normalised gene count matrix exported into: ", output_dir, study_name , "_gene_counts_cqn_norm.tsv")
+  message("## Normalised gene count matrix exported into: ", output_dir, study_name , ".gene_counts_cqn_norm.tsv")
   
 } else if (quant_method=="exon_counts") {
   cqn_norm <- eQTLUtils::qtltoolsPrepareSE(se, "exon_counts", filter_genotype_qc = FALSE, filter_rna_qc = FALSE)
   cqn_assay_fc_formatted <- SummarizedExperiment::cbind(phenotype_id = rownames(assays(cqn_norm)[["cqn"]]), assays(cqn_norm)[["cqn"]])
-  utils::write.table(cqn_assay_fc_formatted, file.path(output_dir, paste0(study_name ,"_exon_counts_cqn_norm.tsv")), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+  utils::write.table(cqn_assay_fc_formatted, file.path(output_dir, paste0(study_name ,".exon_counts_cqn_norm.tsv")), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
   
-  message("## Normalised exon count matrix exported into: ", output_dir, study_name , "_exon_counts_cqn_norm.tsv")
+  message("## Normalised exon count matrix exported into: ", output_dir, study_name , ".exon_counts_cqn_norm.tsv")
   
 } else if (quant_method %in% c("transcript_usage", "txrevise")) {
   q_norm <- eQTLUtils::qtltoolsPrepareSE(se, "txrevise", filter_genotype_qc = FALSE, filter_rna_qc = FALSE)
