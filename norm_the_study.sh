@@ -50,7 +50,8 @@ Rscript normaliseCountMatrix.R\
  -p /gpfs/hpc/home/a72094/annotations/eQTLCatalogue/v0.1/phenotype_metadata/gene_counts_Ensembl_96_phenotype_metadata.tsv.gz\
  -o $3\
  -q gene_counts\
- --eqtlutils /gpfs/hpc/home/a72094/projects/eQTLUtils
+ --eqtlutils /gpfs/hpc/home/a72094/projects/eQTLUtils\
+ --filter_qc TRUE\
 
 echo ""
 echo "Start exon count normalisation"
@@ -62,7 +63,8 @@ Rscript normaliseCountMatrix.R\
  -p /gpfs/hpc/home/a72094/annotations/eQTLCatalogue/v0.1/phenotype_metadata/exon_counts_Ensembl_96_phenotype_metadata.tsv.gz\
  -o $3\
  -q exon_counts\
- --eqtlutils /gpfs/hpc/home/a72094/projects/eQTLUtils
+ --eqtlutils /gpfs/hpc/home/a72094/projects/eQTLUtils\
+ --filter_qc TRUE\
 
 echo ""
 echo "Start transcript count normalisation"
@@ -74,7 +76,8 @@ Rscript normaliseCountMatrix.R\
  -p /gpfs/hpc/home/a72094/annotations/eQTLCatalogue/v0.1/phenotype_metadata/transcript_usage_Ensembl_96_phenotype_metadata.tsv.gz\
  -o $3\
  -q transcript_usage\
- --eqtlutils /gpfs/hpc/home/a72094/projects/eQTLUtils
+ --eqtlutils /gpfs/hpc/home/a72094/projects/eQTLUtils\
+ --filter_qc TRUE\
 
 
 echo ""
@@ -87,5 +90,6 @@ Rscript normaliseCountMatrix.R\
  -p /gpfs/hpc/home/a72094/annotations/eQTLCatalogue/v0.1/phenotype_metadata/txrevise_Ensembl_96_phenotype_metadata.tsv.gz\
  -o $3\
  -q txrevise\
- --eqtlutils /gpfs/hpc/home/a72094/projects/eQTLUtils
+ --eqtlutils /gpfs/hpc/home/a72094/projects/eQTLUtils\
+ --filter_qc TRUE
 
