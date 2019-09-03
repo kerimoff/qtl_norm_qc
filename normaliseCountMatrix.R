@@ -73,7 +73,7 @@ dummy <- assertthat::assert_that(!is.null(phenotype_meta_path) && file.exists(ph
 
 # Read the inputs
 message("## Reading sample metadata ##")
-sample_metadata <- utils::read.csv(sample_meta_path, sep = '\t')
+sample_metadata <- utils::read.csv(sample_meta_path, sep = '\t', stringsAsFactors = FALSE)
 
 if (is.null(study_name)) { 
   assertthat::has_name(sample_metadata, "study" )
