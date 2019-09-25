@@ -44,10 +44,10 @@ suppressPackageStartupMessages(library("ggplot2"))
 #Debugging
 if (FALSE) {
   opt = list()
-  opt$c="data/featureCounts_matrices/Alasoo_test_data/Alasoo_merged_gene_counts.txt"
-  opt$s="data/sample_metadata/Alasoo_2018.tsv"
-  opt$p="data/annotations/gene_counts_Ensembl_96_phenotype_metadata.tsv.gz"
-  opt$m="mbv/"
+  opt$c="../feature_counts_QC/data/counts/ROSMAP/merged_gene_counts.txt"
+  opt$s="../SampleArcheology/studies/cleaned/ROSMAP.tsv"
+  opt$p="../feature_counts_QC/data/annotations/gene_counts_Ensembl_96_phenotype_metadata.tsv.gz"
+  opt$m="../feature_counts_QC/data/counts/ROSMAP/MBV/"
 }
 
 count_matrix_path = opt$c
@@ -100,7 +100,7 @@ message("## Reading featureCounts transcript metadata ##")
 phenotype_meta = readr::read_delim(phenotype_meta_path, delim = "\t", col_types = "ccccciiicciidi")
 
 message("## Reading featureCounts matrix ##")
-data_fc <- utils::read.csv(count_matrix_path, sep = '\t')
+data_fc <- utils::read.csv(count_matrix_path, sep = '\t', check.names = FALSE)
 
 message("## Make Summarized Experiment ##")
 se <- eQTLUtils::makeSummarizedExperimentFromCountMatrix(assay = data_fc, row_data = phenotype_meta, col_data = sample_metadata)
@@ -164,6 +164,7 @@ if (!is.null(mbv_files_dir)) {
   mbv_meta = SummarizedExperiment::colData(se) %>% as.data.frame() %>% dplyr::as_tibble() %>% dplyr::select(sample_id, genotype_id)
   best_matches <- dplyr::left_join(mbv_meta, best_matches, by = "sample_id")
   best_matches$is_correct_match <- best_matches$mbv_genotype_id == best_matches$genotype_id
+  best_matches <- best_matches %>% arrange(distance)
   readr::write_tsv(best_matches, paste0(output_dir, paste0("/tsv/", study_name ,"_MBV_best_matches_matrix.tsv"))) 
   
   if(make_mbv_plots){
