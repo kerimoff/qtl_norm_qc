@@ -5,7 +5,7 @@ Rscript normaliseCountMatrix.R\
  -o /gpfs/hpc/home/kerimov/featurecounts_qc/results_Schmiedel_2018_exon/\
  -q exon_counts\
  --eqtlutils /gpfs/hpc/home/a72094/projects/eQTLUtils\
- --filter_qc TRUE\
+ --filter_qc TRUE
 
  
  

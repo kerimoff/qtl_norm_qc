@@ -45,10 +45,6 @@ singularity exec -B /gpfs/:/gpfs/ docker://kerimoff/eqtlutils bash norm_the_stud
 # BrainSeq
 singularity exec -B /gpfs/:/gpfs/ docker://kerimoff/eqtlutils bash norm_the_study.sh /gpfs/hpc/home/a72094/datasets/processed/BrainSeq /gpfs/hpc/home/kerimov/SampleArcheology/studies/cleaned/BrainSeq.tsv /gpfs/hpc/home/kerimov/featurecounts_qc/results/results_BrainSeq/
 
-
-
-
-
 # Ye_2018
 singularity exec -B /gpfs/:/gpfs/ docker://kerimoff/eqtlutils bash norm_the_study.sh /gpfs/hpc/home/a72094/datasets/processed/Ye_2018 /gpfs/hpc/home/a72094/datasets/controlled_access/SampleArcheology/studies/cleaned/Ye_2018.tsv /gpfs/hpchome/a72094/datasets/processed/expression_matrices/Ye_2018/
 
