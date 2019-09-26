@@ -12,7 +12,7 @@ params:
   phenotype_meta_path: "/home/kerimov/work/feature_counts_QC/data/annotations/gene_counts_Ensembl_96_phenotype_metadata.tsv.gz"
   source_populations_file: "/home/kerimov/work/feature_counts_QC/data/popAssign/igsr_samples.tsv"
   eqtl_utils_path: "/home/kerimov/work/eQTLUtils/"
-  use_plotly: false
+  use_plotly: FALSE
 ---
 
 ---
@@ -112,7 +112,7 @@ PCA.plot <- ggplot2::ggplot(pca_res$pca_matrix, ggplot2::aes(x = PC1, y = PC2, c
     ggplot2::scale_shape_manual(values=c(20,17,18,11,14,25,8,seq(0,7))) +
     ggplot2::labs(x=paste0("PC 1 - (", round(pca_res$var_exp[1]*100, digits = 1),"% var. explained)"),
                   y=paste0("PC 2 - (", round(pca_res$var_exp[2]*100, digits = 1),"% var. explained)"),
-                  title = paste0(study_name, " PCA - TPM normalized, log2 | Sample Size: ", nrow(se %>% SummarizedExperiment::colData()))) +
+                  title = paste0(study_name, " PCA - TPM normalized, log2 | Sample Size: ", nrow(processed_se %>% SummarizedExperiment::colData()))) +
     ggplot2::theme(plot.title =  ggplot2::element_text(size = 12, face="italic")) +
     ggplot2::theme_bw()
 
@@ -152,7 +152,7 @@ mds_plot = ggplot2::ggplot(mds_matrix, ggplot2::aes(x = V1, y = V2, color = qtl_
     ggplot2::geom_point() +
     ggplot2::scale_shape_manual(values=c(20,17,18,11,14,25,8,seq(0,7))) +
     ggplot2::labs(x="MDS Coordinate 1", y="MDS Coordinate 2",
-      title = paste0(study_name, " MDS - TPM normalized, log2 | Sample Size: ", nrow(se %>% SummarizedExperiment::colData()))) +
+      title = paste0(study_name, " MDS - TPM normalized, log2 | Sample Size: ", nrow(processed_se %>% SummarizedExperiment::colData()))) +
     ggplot2::theme(plot.title = element_text(size = 12, face="italic")) +
     ggplot2::theme_bw()
 ```

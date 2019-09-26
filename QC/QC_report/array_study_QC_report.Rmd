@@ -12,7 +12,7 @@ params:
   phenotype_meta_path: "/home/kerimov/work/feature_counts_QC/data/annotations/HumanHT-12_V4_Ensembl_96_phenotype_metadata.tsv.gz"
   source_populations_file: "/home/kerimov/work/feature_counts_QC/data/popAssign/igsr_samples.tsv"
   eqtl_utils_path: "/home/kerimov/work/eQTLUtils"
-  use_plotly: false
+  use_plotly: FALSE
 ---
 
 ---
@@ -102,13 +102,13 @@ valid_chromosomes = c("1","10","11","12","13","14","15","16","17","18","19",
 
 # choose only valid gene types, valid chromosomes and TPM normalise
 processed_se = eQTLUtils::filterSummarizedExperiment(se,
-                                                     valid_chromosomes = valid_chromosomes,
-                                                     valid_gene_types = valid_gene_types, 
-                                                     filter_rna_qc = TRUE, 
-                                                     filter_genotype_qc = TRUE) 
+                                           valid_chromosomes = valid_chromosomes,
+                                           valid_gene_types = valid_gene_types, 
+                                           filter_rna_qc = TRUE, 
+                                           filter_genotype_qc = TRUE) 
 
 
-processed_se = processed_se %>% eQTLUtils::array_normaliseSE()  
+processed_se = processed_se %>% eQTLUtils::array_normaliseSE(adjust_batch = TRUE)  
 processed_se = processed_se[apply(SummarizedExperiment::assays(processed_se)$norm_exprs, 1, median) > 1, ]
 message("Number of phenotypes: ", processed_se %>% nrow())
 
@@ -123,7 +123,7 @@ if (ncol(processed_se) < 10)
 
 #Perform PCA
 pca_res = eQTLUtils::transformSE_PCA(processed_se, assay_name = "norm_exprs", n_pcs = n_pcs, log_transform = TRUE, center = TRUE, scale. = TRUE)
-plot_title_text <- paste0(study_name, " PCA - quantile normalized, log2 | Sample Size: ", nrow(se %>% SummarizedExperiment::colData()))
+plot_title_text <- paste0(study_name, " PCA - quantile normalized, log2 | Sample Size: ", nrow(processed_se %>% SummarizedExperiment::colData()))
 
 PCA.plot <- ggplot2::ggplot(pca_res$pca_matrix, ggplot2::aes(x = PC1, y = PC2, color = qtl_group, label = sample_id)) +
     ggplot2::geom_point() +
@@ -159,7 +159,7 @@ if (use_plotly) {
 message("Number of phenotypes after filtering out phenotypes with median value less than one [median < 1]: ", processed_se %>% nrow())
 
 matrix = log(SummarizedExperiment::assays(processed_se)$norm_exprs+0.1,2)  
-plot_title_text <- paste0(study_name, " MDS - quantile normalized, log2 | Sample Size: ", nrow(se %>% SummarizedExperiment::colData()))
+plot_title_text <- paste0(study_name, " MDS - quantile normalized, log2 | Sample Size: ", nrow(processed_se %>% SummarizedExperiment::colData()))
 
 dist = cor(matrix, method = "pearson")
 fit <- MASS::isoMDS(1-dist, k=2)
@@ -191,12 +191,17 @@ if (use_plotly) {
 * log2(matrix + 1) is applied
 
 ```{r sex_specific, results="hide", warning=FALSE, echo=FALSE, collapse=TRUE, include=FALSE}
-sex_qc_df <- eQTLUtils::array_CalculateSexQCDataFrame(se, assay_name = "exprs", filterByCondition = FALSE, normalise_array = TRUE)
+se <- eQTLUtils::filterSummarizedExperiment(se, filter_rna_qc = TRUE, filter_genotype_qc = TRUE)
+sex_qc_df <- eQTLUtils::array_CalculateSexQCDataFrame(se, assay_name = "exprs",
+                                                          filterByCondition = FALSE,
+                                                          normalise_array = TRUE)
+
 if (all(is.na(sex_qc_df$sex))) { sex_qc_df$sex <- "NA"}
 
 Sex_QC_plot <- ggplot2::ggplot(sex_qc_df, ggplot2::aes(x=XIST, y=Y_chrom_mean, label = sample_id)) +
   ggplot2::geom_point(ggplot2::aes(col=sex)) +
-  ggplot2::labs(x="Expression XIST", y="Mean Expression genes on Y", title = paste0(study_name, " DS | quantile normalised, log2, | Sample Size: ", nrow(sex_qc_df))) +
+  ggplot2::labs(x="Expression XIST", y="Mean Expression genes on Y", 
+                title = paste0(study_name, " DS | quantile normalised, log2, | Sample Size: ", nrow(sex_qc_df))) +
   ggplot2::theme_bw()
 ```
 
