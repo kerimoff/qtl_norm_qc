@@ -1,6 +1,6 @@
 # Fairfax_2012
 rmarkdown::render( 
-    input = "/gpfs/hpc/home/a72094/projects/qtl_norm_qc/QC/QC_report/rnaseq_study_QC_report.Rmd",
+    input = "/gpfs/hpc/home/a72094/projects/qtl_norm_qc/QC/QC_report/array_study_QC_report.Rmd",
     output_file = "~/Fairfax_2012_QC_report.html",
     params = list(
         set_title = "Fairfax_2012 MicroArray QC report",
