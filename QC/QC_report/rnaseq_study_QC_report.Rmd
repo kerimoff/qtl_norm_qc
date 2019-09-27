@@ -20,11 +20,11 @@ title: `r params$set_title`
 author: `r params$set_author`
 ---
 
-- [Plot PCA Analysis](#plot-pca-analysis)
-- [Plot the MDS analysis](#plot-the-mds-analysis)
-- [Sex-specific gene expression analysis](#sex-specific-gene-expression-analysis)
-- [popAssign Genotype PCA analysis](#popassign-genotype-pca-analysis)
-- [MBV (Match BAM to VCF) analysis](#mbv-match-bam-to-vcf-analysis)
+- [PCA of gene expression data](#pca-of-gene-expression-data)
+- [MDS of gene expression data](#mds-of-gene-expression-data)
+- [Expression of sex-specific genes](#expression-of-sex-specific-genes)
+- [Assign genotyped individuals to populations](#assign-genotyped-individuals-to-populations)
+- [Concordance between expression and genotype data](#concordance-between-expression-and-genotype-data)
 
 ***
 ```{r global_options, include=FALSE}
@@ -63,8 +63,8 @@ phenotype_meta = readr::read_delim(phenotype_meta_path, delim = "\t", col_types 
 data_fc <- utils::read.csv(count_matrix_path, sep = '\t', check.names = FALSE)
 se <- eQTLUtils::makeSummarizedExperimentFromCountMatrix(assay = data_fc, row_data = phenotype_meta, col_data = sample_metadata)
 
-message("Number of samples in study before Quality Control: ", sample_metadata %>% nrow())
-message("Number of samples in study after Quality Control: ", sample_metadata[sample_metadata$rna_qc_passed & sample_metadata$genotype_qc_passed,] %>% nrow())
+message("Number of samples in study before quality control: ", sample_metadata %>% nrow())
+message("Number of samples in study after quality control: ", sample_metadata[sample_metadata$rna_qc_passed & sample_metadata$genotype_qc_passed,] %>% nrow())
 ```
 
 ```{r create_and_filter_SE, echo=FALSE, include=FALSE}
@@ -72,13 +72,13 @@ se <- eQTLUtils::filterSummarizedExperiment(se, filter_rna_qc = TRUE, filter_gen
 study_name <- sample_metadata$study[1]
 se
 ```
-### Plot PCA Analysis
+### PCA of gene expression data
 
-Calculate the PCA matrix and plot the PCA analysis output
+Performs principal component analysis (PCA) of gene expression data
 
-* TPM Normalised
+* Applies transcripts per million (TPM) normalisation
 
-* Phenotypes having median less than 1 are filtered out
+* Genes with median expression below 1 TPM are filtered out
 
 * log2(matrix + 0.1) is applied
 
@@ -96,7 +96,7 @@ processed_se = eQTLUtils::filterSummarizedExperiment(se,
                                                      valid_gene_types = valid_gene_types) %>% eQTLUtils::normaliseSE_tpm()
 processed_se = processed_se[apply(SummarizedExperiment::assays(processed_se)$tpms, 1, median) > 1, ]
 
-message("Number of phenotypes after filtering out phenotypes with median value less than one [median(tpm) < 1]: ", processed_se %>% nrow())
+message("Number of genes with [median(tpm) < 1]: ", processed_se %>% nrow())
 ```
 
 ```{r transform_se, echo=FALSE}
@@ -123,22 +123,24 @@ if (use_plotly) {
 }
 ```
 
-### Plot the MDS analysis
+### MDS of gene expression data
 
-* TPM Normalised
+Performs Multi-dimensional scaling (MDS) of gene expression data using isoMDS() R function.
 
-* Phenotypes having median less than 1 are filtered out
+* Applies transcripts per million (TPM) normalisation
+
+* Genes with median expression below 1 TPM are filtered out
 
 * log2(matrix + 0.1) is applied
 
 * dist = cor(matrix, method = "pearson")
 
-* isoMDS(1-dist, k=2) is applied as MDS distance, k=2 scaled into 2 dimensions 
+* Data are scaled to k = 2 dimensions with isoMDS(1-dist, k=2)
 
 ```{r mds, results="hide", warning=FALSE, echo=FALSE, collapse=TRUE}
 #Perform MDS
 
-message("Number of phenotypes after filtering out phenotypes with median value less than one [median(tpm) < 1]: ", processed_se %>% nrow())
+message("Number of genes with [median(tpm) < 1]: ", processed_se %>% nrow())
 
 matrix = log(SummarizedExperiment::assays(processed_se)$tpms+0.1,2)
 dist = cor(matrix, method = "pearson")
@@ -165,11 +167,11 @@ if (use_plotly) {
 }
 ```
 
-### Sex-specific gene expression analysis
+### Expression of sex-specific genes
 
-* TPM Normalised
+Compares the expression of genes on the Y chromosome against the expression of XIST on the X chromosome to check if genetic sex has been correctly described in sample metadata. Inspired by the analysis peformed in ['t Hoen et al, 2013](https://doi.org/10.1038/nbt.2702).
 
-* log2(matrix + 1) is applied
+* Values on the scatter plot are log2(tpm+1).
 
 ```{r sex_specific, echo=FALSE}
 sex_qc_df <- eQTLUtils::calculateSexQCDataFrame(se)
@@ -178,7 +180,7 @@ if (all(is.na(sex_qc_df$sex))) { sex_qc_df$sex <- "NA"}
 Sex_QC_plot <- ggplot2::ggplot(sex_qc_df,
       ggplot2::aes(x=(ENSG00000229807+1) %>% log2(), y=(Y_chrom_mean+1) %>% log2(), label = sample_id)) +
       ggplot2::geom_point(ggplot2::aes(col=sex)) +
-      ggplot2::labs(x="Expression XIST", y="Expression genes on Y", title = paste0(study_name, " DS - TPM normalized, log2 | Sample Size: ", nrow(sex_qc_df))) +
+      ggplot2::labs(x="Expression of XIST", y="Expression of genes on chrY", title = paste0(study_name, " DS - TPM normalized, log2 | Sample Size: ", nrow(sex_qc_df))) +
       ggplot2::theme(plot.title = element_text(size = 12, face="italic")) +
       ggplot2::theme_bw()
 
@@ -189,7 +191,10 @@ if (use_plotly) {
 }
 ```
 
-### popAssign Genotype PCA analysis
+### Assign genotyped individuals to populations
+
+Project genotyped individuals to the first two prinicipal components of the 1000 Genomes Phase 3 reference panel.
+
 ```{r popAssign, echo=FALSE}
 pca <- read.table(pca_table, header = FALSE, )
 pca <- pca %>% select(-c(2)) %>% rename(genotype_id=V1, PC1=V3, PC2=V4, PC3=V5)
@@ -207,8 +212,8 @@ projected_plot <- ggplot(comb_pcs, aes(x=PC1, y=PC2, color=superpopulation_code)
   guides(color = guide_legend(title='Superpopulation')) + ggtitle(study_name) +
   ggplot2::theme_bw()
 
-message("Number of genotypes in study ", study_name, ": ", projections_pcs %>% nrow())
-message("Number of genotypes in reference data: ", main_pca %>% nrow())
+message("Number of genotyped individuals in current study ", study_name, ": ", projections_pcs %>% nrow())
+message("Number of genotyped individuals in reference panel: ", main_pca %>% nrow())
 
 if (use_plotly) {
   plotly::ggplotly(projected_plot)
@@ -218,7 +223,9 @@ if (use_plotly) {
 ```
 
 
-### MBV (Match BAM to VCF) analysis
+### Concordance between expression and genotype data
+
+Uses [QTLtools mbv](https://doi.org/10.1093/bioinformatics/btx074) (Match BAM to VCF) tool to check concordance between genotype data and genetic variants detected from the RNA-seq data. 
 
 ```{r mbv, echo=FALSE}
 mbv_results = eQTLUtils::mbvImportData(mbv_dir = mbv_files_dir, suffix = ".mbv_output.txt")
@@ -247,7 +254,7 @@ p2 <- ggplot(best_matches, aes(x=hom_consistent_frac)) +
   labs(x="Fraction of concordant homozygous sites", y = "Count") +
   ggplot2::theme_bw()
 
-grid <- grid.arrange(p1, p2, ncol = 2, top="Histogram for concordant heterozygous/homozygous sites")
+grid <- grid.arrange(p1, p2, ncol = 2, top="Histogram of concordant heterozygous/homozygous sites")
 ```
 
 ***
@@ -258,7 +265,7 @@ p1 <- ggplot(best_matches, aes(x=het_min_dist)) +
   geom_histogram(color="darkblue", fill="lightblue", bins = 40) +
   geom_vline(aes(xintercept=mean(het_min_dist)),
             color="orange", linetype="dashed", size=1) + 
-  labs(x="minimum distance to second best match \n(heterozygous sites)", y = "Count") +
+  labs(x="Minimal distance to the second best match \n(heterozygous sites)", y = "Count") +
   ggplot2::theme_bw()
 
 
@@ -266,8 +273,8 @@ p2 <- ggplot(best_matches, aes(x=hom_min_dist)) +
   geom_histogram(color="darkblue", fill="lightblue") +
   geom_vline(aes(xintercept=mean(hom_min_dist, bins = 40)),
             color="orange", linetype="dashed", size=1)+ 
-  labs(x="minimum distance to second best match \n(homozygous sites)", y = "Count") +
+  labs(x="Minimal distance to the second best match \n(homozygous sites)", y = "Count") +
   ggplot2::theme_bw()
 
-grid <- grid.arrange(p1, p2, ncol = 2, top="Histogram for distances to the second best match")
+grid <- grid.arrange(p1, p2, ncol = 2, top="Histogram of distances to the second best match")
 ```
