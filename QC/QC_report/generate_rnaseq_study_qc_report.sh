@@ -103,6 +103,21 @@ rmarkdown::render(
         phenotype_meta_path = "/gpfs/hpc/home/a72094/annotations/eQTLCatalogue/v0.1/phenotype_metadata/gene_counts_Ensembl_96_phenotype_metadata.tsv.gz",
         source_populations_file = "/gpfs/hpc/home/kerimov/1000G_genome/source_data/igsr_samples.tsv"))
 
+# Lepik_2017
+rmarkdown::render(
+    input = "/gpfs/hpc/home/kerimov/qtl_norm_qc/QC/QC_report/rnaseq_study_QC_report.Rmd", 
+    output_file = "/gpfs/hpc/home/kerimov/SampleArcheology/QC_reports/Lepik_2017_QC_report.html",
+    params = list(
+        set_title = "Lepik_2017 QC report", 
+        eqtl_utils_path = "/gpfs/hpc/home/kerimov/eQTLUtils",
+        sample_meta_path = "/gpfs/hpc/home/kerimov/SampleArcheology/studies/cleaned/Lepik_2017.tsv",
+        count_matrix_path = "/gpfs/hpc/home/a72094/datasets/processed/Lepik_2017/featureCounts/merged_gene_counts.txt",
+        mbv_files_dir = "/gpfs/hpc/home/a72094/datasets/processed/Lepik_2017/MBV",
+        projections = "/gpfs/hpc/home/kerimov/Genome_QC_Dev/results_Lepik_2017/new_dataset_scores.profile.adj",
+        pca_table = "/gpfs/hpc/home/kerimov/Genome_QC_Dev/results_Lepik_2017/main_overlapped_pca.vect",
+        phenotype_meta_path = "/gpfs/hpc/home/a72094/annotations/eQTLCatalogue/v0.1/phenotype_metadata/gene_counts_Ensembl_96_phenotype_metadata.tsv.gz",
+        source_populations_file = "/gpfs/hpc/home/kerimov/1000G_genome/source_data/igsr_samples.tsv"))
+
 # Nedelec_2016
 rmarkdown::render(
     input = "/gpfs/hpc/home/kerimov/qtl_norm_qc/QC/QC_report/rnaseq_study_QC_report.Rmd", 
@@ -161,6 +176,21 @@ rmarkdown::render(
         mbv_files_dir = "/gpfs/hpc/home/a72094/datasets/processed/Schwartzentruber_2018/MBV",
         projections = "/gpfs/hpc/home/kerimov/Genome_QC_Dev/results_Schwartzentruber_2018/new_dataset_scores.profile.adj",
         pca_table = "/gpfs/hpc/home/kerimov/Genome_QC_Dev/results_Schwartzentruber_2018/main_overlapped_pca.vect",
+        phenotype_meta_path = "/gpfs/hpc/home/a72094/annotations/eQTLCatalogue/v0.1/phenotype_metadata/gene_counts_Ensembl_96_phenotype_metadata.tsv.gz",
+        source_populations_file = "/gpfs/hpc/home/kerimov/1000G_genome/source_data/igsr_samples.tsv"))
+
+# Schmiedel_2018
+rmarkdown::render(
+    input = "/gpfs/hpc/home/kerimov/qtl_norm_qc/QC/QC_report/rnaseq_study_QC_report.Rmd", 
+    output_file = "/gpfs/hpc/home/kerimov/SampleArcheology/QC_reports/Schmiedel_2018_QC_report.html",
+    params = list(
+        set_title = "Schmiedel_2018 QC report", 
+        eqtl_utils_path = "/gpfs/hpc/home/kerimov/eQTLUtils",
+        sample_meta_path = "/gpfs/hpc/home/kerimov/SampleArcheology/studies/cleaned/Schmiedel_2018.tsv",
+        count_matrix_path = "/gpfs/hpc/home/a72094/datasets/processed/Schmiedel_2018/featureCounts/merged_gene_counts.txt",
+        mbv_files_dir = "/gpfs/hpc/home/a72094/datasets/processed/Schmiedel_2018/MBV",
+        projections = "/gpfs/hpc/home/kerimov/Genome_QC_Dev/results_Schmiedel_2018/new_dataset_scores.profile.adj",
+        pca_table = "/gpfs/hpc/home/kerimov/Genome_QC_Dev/results_Schmiedel_2018/main_overlapped_pca.vect",
         phenotype_meta_path = "/gpfs/hpc/home/a72094/annotations/eQTLCatalogue/v0.1/phenotype_metadata/gene_counts_Ensembl_96_phenotype_metadata.tsv.gz",
         source_populations_file = "/gpfs/hpc/home/kerimov/1000G_genome/source_data/igsr_samples.tsv"))
 
