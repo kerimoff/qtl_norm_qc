@@ -96,7 +96,7 @@ processed_se = eQTLUtils::filterSummarizedExperiment(se,
                                                      valid_gene_types = valid_gene_types) %>% eQTLUtils::normaliseSE_tpm()
 processed_se = processed_se[apply(SummarizedExperiment::assays(processed_se)$tpms, 1, median) > 1, ]
 
-message("Number of genes with [median(tpm) < 1]: ", processed_se %>% nrow())
+message("Number of genes with [median(tpm) > 1]: ", processed_se %>% nrow())
 ```
 
 ```{r transform_se, echo=FALSE}
@@ -140,7 +140,7 @@ Performs Multi-dimensional scaling (MDS) of gene expression data using isoMDS() 
 ```{r mds, results="hide", warning=FALSE, echo=FALSE, collapse=TRUE}
 #Perform MDS
 
-message("Number of genes with [median(tpm) < 1]: ", processed_se %>% nrow())
+message("Number of genes with [median(tpm) > 1]: ", processed_se %>% nrow())
 
 matrix = log(SummarizedExperiment::assays(processed_se)$tpms+0.1,2)
 dist = cor(matrix, method = "pearson")
@@ -180,7 +180,7 @@ if (all(is.na(sex_qc_df$sex))) { sex_qc_df$sex <- "NA"}
 Sex_QC_plot <- ggplot2::ggplot(sex_qc_df,
       ggplot2::aes(x=(ENSG00000229807+1) %>% log2(), y=(Y_chrom_mean+1) %>% log2(), label = sample_id)) +
       ggplot2::geom_point(ggplot2::aes(col=sex)) +
-      ggplot2::labs(x="Expression of XIST", y="Expression of genes on chrY", title = paste0(study_name, " DS - TPM normalized, log2 | Sample Size: ", nrow(sex_qc_df))) +
+      ggplot2::labs(x="Expression of XIST", y="Mean expression of genes on chrY", title = paste0(study_name, " DS - TPM normalized, log2 | Sample Size: ", nrow(sex_qc_df))) +
       ggplot2::theme(plot.title = element_text(size = 12, face="italic")) +
       ggplot2::theme_bw()
 
@@ -212,8 +212,8 @@ projected_plot <- ggplot(comb_pcs, aes(x=PC1, y=PC2, color=superpopulation_code)
   guides(color = guide_legend(title='Superpopulation')) + ggtitle(study_name) +
   ggplot2::theme_bw()
 
-message("Number of genotyped individuals in current study ", study_name, ": ", projections_pcs %>% nrow())
-message("Number of genotyped individuals in reference panel: ", main_pca %>% nrow())
+message("Number of genotyped individuals in the current study ", study_name, ": ", projections_pcs %>% nrow())
+message("Number of genotyped individuals in the reference panel: ", main_pca %>% nrow())
 
 if (use_plotly) {
   plotly::ggplotly(projected_plot)
