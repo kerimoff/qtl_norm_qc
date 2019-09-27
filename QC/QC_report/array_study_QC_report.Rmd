@@ -20,10 +20,10 @@ title: `r params$set_title`
 author: `r params$set_author`
 ---
 
-- [Plot PCA Analysis](#plot-pca-analysis)
-- [Plot the MDS analysis](#plot-the-mds-analysis)
-- [Sex-specific gene expression analysis](#sex-specific-gene-expression-analysis)
-- [popAssign Genotype PCA analysis](#popassign-genotype-pca-analysis)
+- [PCA of gene expression data](#pca-of-gene-expression-data)
+- [MDS of gene expression data](#mds-of-gene-expression-data)
+- [Expression of sex-specific genes](#expression-of-sex-specific-genes)
+- [Assign genotyped individuals to populations](#assign-genotyped-individuals-to-populations)
 
 ***
 ```{r global_options, include=FALSE}
@@ -78,19 +78,13 @@ se <- eQTLUtils::makeSummarizedExperimentFromCountMatrix(assay = data_fc,
                                                          col_data = sample_metadata, 
                                                          quant_method = params$quant_method)
 
-message("Number of samples in study before Quality Control: ", sample_metadata %>% nrow())
-message("Number of samples in study after Quality Control: ", sample_metadata[sample_metadata$rna_qc_passed & sample_metadata$genotype_qc_passed,] %>% nrow())
+message("Number of samples in study before quality control: ", sample_metadata %>% nrow())
+message("Number of samples in study after quality control: ", sample_metadata[sample_metadata$rna_qc_passed & sample_metadata$genotype_qc_passed,] %>% nrow())
 ```
 
-### Plot PCA Analysis
+### PCA of gene expression data
 
-Calculate the PCA matrix and plot the PCA analysis output
-
-* Quantile Normalised
-
-* Phenotypes having median less than 1 are filtered out
-
-* log2(matrix + 0.1) is applied
+Performs principal component analysis (PCA) of gene expression data
 
 ```{r pca_res, echo=FALSE}
 valid_gene_types = c("lincRNA","protein_coding","IG_C_gene","IG_D_gene","IG_J_gene",
@@ -141,22 +135,18 @@ if (use_plotly) {
 }
 ```
 
-### Plot the MDS analysis
+### MDS of gene expression data
 
-* Quantile Normalised
-
-* Phenotypes having median less than 1 are filtered out
-
-* log2(matrix + 0.1) is applied
+Performs Multi-dimensional scaling (MDS) of gene expression data using isoMDS() R function.
 
 * dist = cor(matrix, method = "pearson")
 
-* isoMDS(1-dist, k=2) is applied as MDS distance, k=2 scaled into 2 dimensions 
+* Data are scaled to k = 2 dimensions with isoMDS(1-dist, k=2)
 
 ```{r mds, results="hide", warning=FALSE, echo=FALSE, collapse=TRUE}
 #Perform MDS
 
-message("Number of phenotypes after filtering out phenotypes with median value less than one [median < 1]: ", processed_se %>% nrow())
+message("Number of probes included in the analysis: ", processed_se %>% nrow())
 
 matrix = log(SummarizedExperiment::assays(processed_se)$norm_exprs+0.1,2)  
 plot_title_text <- paste0(study_name, " MDS - quantile normalized, log2 | Sample Size: ", nrow(processed_se %>% SummarizedExperiment::colData()))
@@ -184,11 +174,9 @@ if (use_plotly) {
 }
 ```
 
-### Sex-specific gene expression analysis
+### Expression of sex-specific genes
 
-* Quantile Normalised
-
-* log2(matrix + 1) is applied
+Compares the expression of genes on the Y chromosome against the expression of XIST on the X chromosome to check if genetic sex has been correctly described in sample metadata. Inspired by the analysis peformed in ['t Hoen et al, 2013](https://doi.org/10.1038/nbt.2702).
 
 ```{r sex_specific, results="hide", warning=FALSE, echo=FALSE, collapse=TRUE, include=FALSE}
 se <- eQTLUtils::filterSummarizedExperiment(se, filter_rna_qc = TRUE, filter_genotype_qc = TRUE)
@@ -200,7 +188,7 @@ if (all(is.na(sex_qc_df$sex))) { sex_qc_df$sex <- "NA"}
 
 Sex_QC_plot <- ggplot2::ggplot(sex_qc_df, ggplot2::aes(x=XIST, y=Y_chrom_mean, label = sample_id)) +
   ggplot2::geom_point(ggplot2::aes(col=sex)) +
-  ggplot2::labs(x="Expression XIST", y="Mean Expression genes on Y", 
+  ggplot2::labs(x="Expression of XIST", y="Mean expression of genes on chrY", 
                 title = paste0(study_name, " DS | quantile normalised, log2, | Sample Size: ", nrow(sex_qc_df))) +
   ggplot2::theme_bw()
 ```
@@ -214,7 +202,10 @@ if (use_plotly) {
 ```
 
 
-### popAssign Genotype PCA analysis
+### Assign genotyped individuals to populations
+
+Project genotyped individuals to the first two principal components of the 1000 Genomes Phase 3 reference panel.
+
 ```{r popAssign, echo=FALSE}
 pca <- read.table(pca_table, header = FALSE, )
 pca <- pca %>% select(-c(2)) %>% rename(genotype_id=V1, PC1=V3, PC2=V4, PC3=V5)
@@ -232,8 +223,8 @@ projected_plot <- ggplot(comb_pcs, aes(x=PC1, y=PC2, color=superpopulation_code)
   guides(color = guide_legend(title='Superpopulation')) + ggtitle(study_name) +
   ggplot2::theme_bw()
 
-message("Number of genotypes in study ", study_name, ": ", projections_pcs %>% nrow())
-message("Number of genotypes in reference data: ", main_pca %>% nrow())
+message("Number of genotyped individuals in the current study ", study_name, ": ", projections_pcs %>% nrow())
+message("Number of genotype individuals in the reference panel: ", main_pca %>% nrow())
 
 if (use_plotly) {
   plotly::ggplotly(projected_plot)
