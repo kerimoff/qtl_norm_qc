@@ -193,7 +193,7 @@ if (use_plotly) {
 
 ### Assign genotyped individuals to populations
 
-Project genotyped individuals to the first two prinicipal components of the 1000 Genomes Phase 3 reference panel.
+Project genotyped individuals to the first two principal components of the 1000 Genomes Phase 3 reference panel.
 
 ```{r popAssign, echo=FALSE}
 pca <- read.table(pca_table, header = FALSE, )
